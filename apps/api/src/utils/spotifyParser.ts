@@ -187,7 +187,7 @@ export async function parseSpotifyHistory(filePath: string, userId: string): Pro
         if (!trackId) {
             // Find by name if no spotifyId or not in cache
             const existingTrack = await prisma.track.findFirst({
-                where: spotifyTrackId ? { spotifyId } : { name: trackName, artistId, albumId }
+                where: spotifyTrackId ? { spotifyId: spotifyTrackId } : { name: trackName, artistId, albumId }
             });
 
             if (existingTrack) {

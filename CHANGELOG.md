@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Preference Storage Bug: Fixed a bug where dashboard and recap preferences were incorrectly stored as JSON objects instead of strings, causing them to fail to load after a reload.
 - **Docker Image Optimization**: Optimized `Dockerfile` with multi-stage builds and added `.dockerignore` to reduce image size and improve security.
 - **Documentation Overhaul**: Completely rewrote `README.md` for better clarity, including Docker setup instructions and technology credits.
+- **CI Build Fix**: Resolved `TS18004` error in `spotifyParser.ts` by fixing shorthand property mapping for `spotifyId`.
 
 ### Changed
 - Improved project repository infrastructure.
