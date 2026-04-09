@@ -13,7 +13,7 @@
     "@better-auth/utils": "^0.4.0",
     "adm-zip": "^0.5.17",
     "axios": "^1.14.0",
-    "better-auth": "^1.6.0",
+    "better-auth": "^1.6.2",
     "bullmq": "^5.73.1",
     "cors": "^2.8.6",
     "csv-parse": "^6.2.1",
