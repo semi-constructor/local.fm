@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "axios": "^1.7.9",
-    "better-auth": "^1.6.0",
+    "better-auth": "^1.6.2",
     "clsx": "^2.1.1",
     "database": "*",
     "date-fns": "^4.1.0",
