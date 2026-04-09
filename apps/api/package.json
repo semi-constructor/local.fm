@@ -6,22 +6,43 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "test": "jest"
   },
   "dependencies": {
-    "database": "*",
-    "types": "*",
+    "@better-auth/utils": "^0.4.0",
+    "adm-zip": "^0.5.17",
     "axios": "^1.14.0",
+    "better-auth": "^1.6.0",
+    "bullmq": "^5.73.1",
+    "cors": "^2.8.6",
+    "csv-parse": "^6.2.1",
+    "database": "*",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
+    "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
-    "better-auth": "^0.2.0"
+    "multer": "^2.1.1",
+    "types": "*"
   },
   "devDependencies": {
+    "@swc/core": "^1.15.24",
+    "@swc/jest": "^0.2.39",
+    "@types/adm-zip": "^0.5.8",
+    "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.1.0",
     "@types/node": "^25.5.2",
-    "typescript": "^5.3.3",
+    "@types/supertest": "^7.2.0",
+    "eslint-config-custom": "*",
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.9",
     "ts-node-dev": "^2.0.0",
-    "eslint-config-custom": "*"
+    "typescript": "^5.3.3"
   }
 }

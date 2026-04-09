@@ -1,0 +1,28 @@
+{
+  "intro": {
+    "title": "Your Year in Music",
+    "subtitle": "Tap to start the journey"
+  },
+  "minutes": {
+    "title": "You spent a lot of time with us.",
+    "subtitle": "Minutes streamed. That's a lot of rhythm."
+  },
+  "artist": {
+    "title": "Your #1 Artist",
+    "subtitle": "You're in their top fans this year."
+  },
+  "track": {
+    "title": "The song on repeat",
+    "subtitle": "by {artist}"
+  },
+  "genres": {
+    "title": "Your Sound Palette"
+  },
+  "summary": {
+    "title": "Top Artist",
+    "minutes": "Minutes",
+    "track": "Top Track",
+    "share": "Share Recap",
+    "noData": "NO DATA FOR RECAP"
+  }
+}

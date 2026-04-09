@@ -1,0 +1,19 @@
+{
+  "hero": {
+    "currentlyListening": "Hört gerade",
+    "paused": "Pausiert",
+    "nowPlaying": "Aktueller Titel"
+  },
+  "today": {
+    "title": "Heutige Aktivität",
+    "streams": "Streams",
+    "timeListened": "Hördauer"
+  },
+  "recap": {
+    "title": "Erlebe dein Musikjahr neu.",
+    "subtitle": "Schau dir deinen persönlichen Rückblick 2026 an"
+  },
+  "recent": {
+    "title": "Zuletzt gehört"
+  }
+}

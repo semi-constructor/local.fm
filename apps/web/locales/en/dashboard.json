@@ -1,0 +1,19 @@
+{
+  "hero": {
+    "currentlyListening": "Currently Listening",
+    "paused": "Paused",
+    "nowPlaying": "Now Playing"
+  },
+  "today": {
+    "title": "Today's Activity",
+    "streams": "Streams",
+    "timeListened": "Time Listened"
+  },
+  "recap": {
+    "title": "Relive your year in music.",
+    "subtitle": "Check out your personal 2026 Recap"
+  },
+  "recent": {
+    "title": "Recently Played"
+  }
+}

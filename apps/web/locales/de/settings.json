@@ -1,0 +1,110 @@
+{
+  "title": "Einstellungen",
+  "subtitle": "Konfiguriere dein local.fm Erlebnis",
+  "sections": {
+    "appearance": "Erscheinungsbild",
+    "localization": "Sprache & Region",
+    "spotify": "Spotify & Integrationen",
+    "dashboard": "Dashboard-Einstellungen",
+    "recap": "Rückblick-Einstellungen",
+    "privacy": "Datenschutz & Sicherheit",
+    "advanced": "Fortgeschritten / Self-host"
+  },
+  "appearance": {
+    "theme": {
+      "title": "Design",
+      "system": "System",
+      "dark": "Dunkel",
+      "light": "Hell"
+    },
+    "accent": {
+      "title": "Akzentfarbe",
+      "green": "Spotify Grün",
+      "violet": "Violett",
+      "blue": "Blau",
+      "amber": "Bernstein"
+    },
+    "font": {
+      "title": "Typografie",
+      "sans": "Inter (Sans)",
+      "mono": "Space Mono",
+      "serif": "Crimson Pro",
+      "black": "Archivo Black"
+    },
+    "density": {
+      "title": "Layout-Dichte",
+      "compact": "Kompakt",
+      "comfortable": "Angenehm",
+      "spacious": "Großzügig"
+    }
+  },
+  "spotify": {
+    "status": "Verbindungsstatus",
+    "connected": "Mit Spotify verbunden",
+    "disconnected": "Nicht verbunden",
+    "lastSync": "Letzte Synchronisierung",
+    "syncNow": "Jetzt synchronisieren",
+    "reconnect": "Spotify neu verbinden"
+  },
+  "dashboard": {
+    "title": "Dashboard-Layout",
+    "description": "Passe an, was du auf deinem Haupt-Dashboard siehst.",
+    "sections": {
+      "summary": "Zusammenfassungs-Karten",
+      "currentlyPlaying": "Aktuelle Wiedergabe",
+      "recentlyPlayed": "Zuletzt gehört",
+      "habits": "Hörgewohnheiten",
+      "topItems": "Top Charts",
+      "heatmap": "Aktivitäts-Heatmap",
+      "genres": "Genre-Übersicht"
+    }
+  },
+  "recap": {
+    "title": "Rückblick-Erlebnis",
+    "description": "Verwalte deine jährlichen Musik-Zusammenfassungen.",
+    "year": "Rückblicks-Jahr",
+    "showGenres": "Top-Genres anzeigen",
+    "showActiveDay": "Aktivsten Tag anzeigen",
+    "animation": "Animationen aktivieren"
+  },
+  "privacy": {
+    "title": "Privatsphäre & Öffentliche Statistiken",
+    "description": "Steuere, wer deine Hörstatistiken sehen kann.",
+    "public": {
+      "label": "Öffentliche Statistiken",
+      "desc": "Jeder mit dem Link kann deine Zusammenfassung und Top-Tracks sehen."
+    },
+    "link": {
+      "label": "Dein Share-Link",
+      "copy": "Link kopieren",
+      "copied": "Kopiert!"
+    }
+  },
+  "advanced": {
+    "title": "System & Self-Host",
+    "description": "Erweiterte Konfiguration und Systeminformationen.",
+    "system": {
+      "version": "Version",
+      "environment": "Umgebung",
+      "database": "Datenbank-Status",
+      "redis": "Redis-Status"
+    },
+    "logs": {
+      "title": "System-Logs",
+      "view": "Letzte Logs anzeigen",
+      "clear": "Cache leeren"
+    }
+  },
+  "data": {
+    "export": "Persönliche Daten exportieren",
+    "exportJson": "Als JSON exportieren",
+    "delete": "Alles löschen",
+    "deleteDesc": "Diese Aktion ist permanent und löscht deinen gesamten Hörverlauf.",
+    "confirmDelete": "Löschen bestätigen"
+  },
+  "common": {
+    "save": "Änderungen speichern",
+    "saved": "Einstellungen gespeichert",
+    "comingSoon": "Demnächst verfügbar"
+  }
+}

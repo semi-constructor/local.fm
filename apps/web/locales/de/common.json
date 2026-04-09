@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "main": "Übersicht",
+    "history": "Verlauf",
+    "lifetime": "Gesamt",
+    "timeframe": "Zeitraum",
+    "top": "Charts",
+    "recaps": "Rückblicke"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten",
+    "viewAll": "Alle anzeigen",
+    "streams": "Streams",
+    "minutes": "Minuten",
+    "artists": "Künstler",
+    "albums": "Alben",
+    "tracks": "Titel",
+    "genres": "Genres"
+  }
+}

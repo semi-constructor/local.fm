@@ -1,0 +1,28 @@
+{
+  "intro": {
+    "title": "Dein Musikjahr",
+    "subtitle": "Tippen zum Starten"
+  },
+  "minutes": {
+    "title": "Du hast viel Zeit mit uns verbracht.",
+    "subtitle": "Minuten gestreamt. Das ist eine Menge Rhythmus."
+  },
+  "artist": {
+    "title": "Dein #1 Künstler",
+    "subtitle": "Du gehörst dieses Jahr zu ihren Top-Fans."
+  },
+  "track": {
+    "title": "Dein Song auf Dauerschleife",
+    "subtitle": "von {artist}"
+  },
+  "genres": {
+    "title": "Deine Sound-Palette"
+  },
+  "summary": {
+    "title": "Top Künstler",
+    "minutes": "Minuten",
+    "track": "Top Titel",
+    "share": "Rückblick teilen",
+    "noData": "KEINE DATEN FÜR RÜCKBLICK"
+  }
+}

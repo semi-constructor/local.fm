@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "main": "Main",
+    "history": "History",
+    "lifetime": "Lifetime",
+    "timeframe": "Timeframe",
+    "top": "Top",
+    "recaps": "Recaps"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "viewAll": "View All",
+    "streams": "Streams",
+    "minutes": "Minutes",
+    "artists": "Artists",
+    "albums": "Albums",
+    "tracks": "Tracks",
+    "genres": "Genres"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "title": "Hörverlauf",
+  "subtitle": "Jeder Song, den du jemals gespielt hast, in chronologischer Reihenfolge.",
+  "backToDashboard": "Zurück zur Übersicht",
+  "pagination": {
+    "prev": "Vorherige",
+    "next": "Nächste"
+  }
+}

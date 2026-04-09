@@ -1,0 +1,9 @@
+{
+  "title": "Listening History",
+  "subtitle": "Every song you've ever played, in order.",
+  "backToDashboard": "Back to Dashboard",
+  "pagination": {
+    "prev": "Previous",
+    "next": "Next"
+  }
+}

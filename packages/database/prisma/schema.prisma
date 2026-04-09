@@ -11,21 +11,31 @@ model User {
   id            String    @id @default(cuid())
   name          String?
   email         String    @unique
-  emailVerified DateTime?
+  emailVerified Boolean   @default(false)
   image         String?
+  birthday      DateTime?
+  accentColor   String?   @default("violet")
+  fontFamily    String?   @default("sans")
+  dashboardPrefs Json?     @default("{}")
+  recapPrefs     Json?     @default("{}")
+  publicId      String?   @unique @default(cuid())
+  isPublicStats Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   sessions      Session[]
   accounts      Account[]
+  streams       Stream[]
+  imports       Import[]
 }
 
 model Session {
   id           String   @id @default(cuid())
   userId       String
-  expires      DateTime
-  sessionToken String   @unique
-  accessToken  String   @unique
+  expiresAt    DateTime
+  token        String   @unique
+  ipAddress    String?
+  userAgent    String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -36,13 +46,82 @@ model Account {
   userId                String
   accountId             String
   providerId            String
-  userIdOnProvider      String
-  providerType          String?
   accessToken           String?   @db.Text
   refreshToken          String?   @db.Text
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?   @db.Text
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model Artist {
+  id        String   @id @default(cuid())
+  spotifyId String?  @unique
+  appleId   String?  @unique
+  name      String
+  imageUrl  String?
+  genres    String[]
+  tracks    Track[]
+  albums    Album[]
+}
+
+model Album {
+  id        String   @id @default(cuid())
+  spotifyId String?  @unique
+  appleId   String?  @unique
+  name      String
+  imageUrl  String?
+  artistId  String
+  artist    Artist   @relation(fields: [artistId], references: [id])
+  tracks    Track[]
+}
+
+model Track {
+  id        String   @id @default(cuid())
+  spotifyId String?  @unique
+  appleId   String?  @unique
+  name      String
+  duration  Int      // in ms
+  artistId  String
+  artist    Artist   @relation(fields: [artistId], references: [id])
+  albumId   String
+  album     Album    @relation(fields: [albumId], references: [id])
+  streams   Stream[]
+}
+
+model Stream {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  trackId   String
+  track     Track    @relation(fields: [trackId], references: [id])
+  playedAt  DateTime
+  duration  Int      // actual listened duration in ms
+
+  @@unique([userId, trackId, playedAt], name: "userId_trackId_playedAt")
+}
+
+model Import {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  status    String   // PENDING, PROCESSING, COMPLETED, FAILED
+  fileName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@map("verification")
+}
+

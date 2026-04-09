@@ -1,0 +1,110 @@
+{
+  "title": "Settings",
+  "subtitle": "Configure your local.fm experience",
+  "sections": {
+    "appearance": "Appearance",
+    "localization": "Language & Localization",
+    "spotify": "Spotify & Integrations",
+    "dashboard": "Dashboard Preferences",
+    "recap": "Recap Settings",
+    "privacy": "Privacy & Data",
+    "advanced": "Advanced / Self-host"
+  },
+  "appearance": {
+    "theme": {
+      "title": "Theme",
+      "system": "System",
+      "dark": "Dark",
+      "light": "Light"
+    },
+    "accent": {
+      "title": "Accent Color",
+      "green": "Spotify Green",
+      "violet": "Deep Violet",
+      "blue": "Electric Blue",
+      "amber": "Warm Amber"
+    },
+    "font": {
+      "title": "Typography",
+      "sans": "Inter (Sans)",
+      "mono": "Space Mono",
+      "serif": "Crimson Pro",
+      "black": "Archivo Black"
+    },
+    "density": {
+      "title": "Density",
+      "compact": "Compact",
+      "comfortable": "Comfortable",
+      "spacious": "Spacious"
+    }
+  },
+  "spotify": {
+    "status": "Connection Status",
+    "connected": "Connected to Spotify",
+    "disconnected": "Disconnected",
+    "lastSync": "Last successful sync",
+    "syncNow": "Sync Now",
+    "reconnect": "Reconnect Spotify"
+  },
+  "dashboard": {
+    "title": "Dashboard Layout",
+    "description": "Customize what you see on your main dashboard.",
+    "sections": {
+      "summary": "Summary Cards",
+      "currentlyPlaying": "Currently Playing",
+      "recentlyPlayed": "Recently Played",
+      "habits": "Listening Habits",
+      "topItems": "Top Charts",
+      "heatmap": "Activity Heatmap",
+      "genres": "Genre Breakdown"
+    }
+  },
+  "recap": {
+    "title": "Recap Experience",
+    "description": "Manage your yearly music summaries.",
+    "year": "Recap Year",
+    "showGenres": "Show Top Genres",
+    "showActiveDay": "Show Most Active Day",
+    "animation": "Enable Animations"
+  },
+  "privacy": {
+    "title": "Privacy & Public Stats",
+    "description": "Control who can see your listening statistics.",
+    "public": {
+      "label": "Public Statistics",
+      "desc": "Anyone with the link can see your summary and top tracks."
+    },
+    "link": {
+      "label": "Your Sharing Link",
+      "copy": "Copy Link",
+      "copied": "Copied!"
+    }
+  },
+  "advanced": {
+    "title": "System & Self-Host",
+    "description": "Advanced configuration and system information.",
+    "system": {
+      "version": "Version",
+      "environment": "Environment",
+      "database": "Database Status",
+      "redis": "Redis Status"
+    },
+    "logs": {
+      "title": "System Logs",
+      "view": "View recent logs",
+      "clear": "Clear cache"
+    }
+  },
+  "data": {
+    "export": "Export Personal Data",
+    "exportJson": "Export as JSON",
+    "delete": "Delete Everything",
+    "deleteDesc": "This action is permanent and will delete all your listening history.",
+    "confirmDelete": "Confirm Deletion"
+  },
+  "common": {
+    "save": "Save Changes",
+    "saved": "Settings saved",
+    "comingSoon": "Coming Soon"
+  }
+}
