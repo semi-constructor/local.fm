@@ -34,15 +34,20 @@ export default function HistoryView({ dict, locale }: { dict: HistoryDict, local
 
     useEffect(() => {
         let isMounted = true;
-        setLoading(true);
-        axios.get(`${API_BASE_URL}/stats/recently-played?page=${page}&limit=50`, { withCredentials: true })
-            .then(res => {
+        
+        const fetchHistory = async () => {
+            setLoading(true);
+            try {
+                const res = await axios.get(`${API_BASE_URL}/stats/recently-played?page=${page}&limit=50`, { withCredentials: true });
                 if (isMounted) setStreams(res.data);
-            })
-            .catch(err => console.error(err))
-            .finally(() => {
+            } catch (err) {
+                console.error(err);
+            } finally {
                 if (isMounted) setLoading(false);
-            });
+            }
+        };
+
+        fetchHistory();
         return () => { isMounted = false; };
     }, [page]);
 

@@ -12,10 +12,10 @@ interface TopTabProps {
     topGenres: any[];
     formatDuration: (ms: number) => string;
     common: any;
-    timeframe: string;
-    setTimeframe: (tf: string) => void;
-    topSubTab: string;
-    setTopSubTab: (tab: string) => void;
+    timeframe: 'day' | 'week' | 'month' | 'year';
+    setTimeframe: (tf: 'day' | 'week' | 'month' | 'year') => void;
+    topSubTab: 'tracks' | 'artists' | 'albums' | 'genres';
+    setTopSubTab: (tab: 'tracks' | 'artists' | 'albums' | 'genres') => void;
     isVisible: (sectionId: string) => boolean;
 }
 
@@ -41,7 +41,7 @@ export function TopTab({
                     {timeframes.map((tf) => (
                         <button
                             key={tf}
-                            onClick={() => setTimeframe(tf)}
+                            onClick={() => setTimeframe(tf as any)}
                             className={cn(
                                 "px-6 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
                                 timeframe === tf ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20" : "text-muted-foreground hover:text-foreground"
@@ -56,7 +56,7 @@ export function TopTab({
                     {subTabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setTopSubTab(tab.id)}
+                            onClick={() => setTopSubTab(tab.id as any)}
                             className={cn(
                                 "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
                                 topSubTab === tab.id ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20" : "text-muted-foreground hover:text-foreground"

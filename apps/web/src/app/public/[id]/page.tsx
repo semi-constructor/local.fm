@@ -2,6 +2,7 @@ import { getDictionary, getLocale } from "@/lib/i18n";
 import PublicStatsView from "./PublicStatsView";
 import axios from "axios";
 import { API_BASE_URL } from "@/lib/api";
+import Link from "next/link";
 
 export default async function PublicProfilePage({ params }: { params: { id: string } }) {
     const { id } = await params;
@@ -15,9 +16,13 @@ export default async function PublicProfilePage({ params }: { params: { id: stri
     try {
         const res = await axios.get(`${API_BASE_URL}/stats/public/${id}/profile?timeframe=lifetime`);
         initialData = res.data;
-    } catch (e: any) {
+    } catch (e: unknown) {
         // Fallback or specific error handling
-        error = e.response?.data?.error || "User not found or profile is private";
+        if (axios.isAxiosError(e)) {
+            error = e.response?.data?.error || "User not found or profile is private";
+        } else {
+            error = "An unexpected error occurred";
+        }
     }
 
     if (error) {
@@ -26,9 +31,9 @@ export default async function PublicProfilePage({ params }: { params: { id: stri
                 <div className="text-center space-y-4">
                     <h1 className="text-4xl font-black tracking-tighter">404</h1>
                     <p className="text-muted-foreground font-bold">{error}</p>
-                    <a href="/" className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-2xl text-xs font-black uppercase tracking-widest">
+                    <Link href="/" className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-2xl text-xs font-black uppercase tracking-widest">
                         Go Home
-                    </a>
+                    </Link>
                 </div>
             </div>
         );

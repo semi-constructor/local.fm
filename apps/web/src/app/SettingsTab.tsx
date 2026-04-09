@@ -18,25 +18,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { applyAccentColor, applyFontFamily, ACCENT_COLORS } from '@/lib/theme';
 
 interface SettingsTabProps {
-    dict: any;
+    dict: Record<string, any>;
     locale: string;
-    spotifyStatus: any;
+    spotifyStatus: { status: string; lastSync?: string } | null;
     disconnect: (platform: string) => void;
     activeSection?: string;
-    session: any;
+    session: { user: any } | null;
 }
 
 export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSection: initialSection, session }: SettingsTabProps) {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
-    const [activeSection, setActiveSection] = useState(initialSection || 'appearance');
+    const [activeSection, setActiveSection] = useState('appearance');
     
     // Settings State (Local)
     const [accentColor, setAccentColor] = useState('violet');
     const [fontFamily, setFontFamily] = useState('sans');
     const [isPublic, setIsPublic] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [publicId, setPublicId] = useState('');
+    
     const [isDebugMode, setIsDebugMode] = useState(false);
     const [dashboardPrefs, setDashboardPrefs] = useState<Record<string, boolean>>({
         summary: true,
@@ -56,7 +55,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
     });
 
     // UI State
-    const [systemHealth, setSystemHealth] = useState<any>(null);
+    const [systemHealth, setSystemHealth] = useState<{ redis?: string } | null>(null);
     const [isCopied, setIsCopied] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -81,7 +80,6 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
 
         // Load settings from session (Database)
         if (session?.user) {
-            setPublicId(session.user.publicId || '');
             setIsPublic(!!session.user.isPublicStats);
             setIsDebugMode(!!session.user.debugMode);
             if (session.user.accentColor) setAccentColor(session.user.accentColor);
@@ -91,13 +89,13 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                 try {
                     const prefs = typeof session.user.dashboardPrefs === 'string' ? JSON.parse(session.user.dashboardPrefs) : session.user.dashboardPrefs;
                     setDashboardPrefs(prefs);
-                } catch(e) { setDashboardPrefs(session.user.dashboardPrefs); }
+                } catch(e) { console.error(e); }
             }
             if (session.user.recapPrefs) {
                 try {
                     const prefs = typeof session.user.recapPrefs === 'string' ? JSON.parse(session.user.recapPrefs) : session.user.recapPrefs;
                     setRecapPrefs(prefs);
-                } catch(e) { setRecapPrefs(session.user.recapPrefs); }
+                } catch(e) { console.error(e); }
             }
         }
 

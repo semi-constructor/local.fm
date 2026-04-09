@@ -2,35 +2,50 @@
 
 import { authClient } from "@/lib/auth";
 import { API_BASE_URL } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 
+interface TrackStats {
+    id: string;
+    name: string;
+    artist?: {
+        name: string;
+    };
+    album?: {
+        name: string;
+    };
+    playCount: number;
+    totalDuration: number;
+}
+
 export default function TopTracksPage() {
     const { data: session, isPending } = authClient.useSession();
     const router = useRouter();
-    const [tracks, setTracks] = useState([]);
+    const [tracks, setTracks] = useState<TrackStats[]>([]);
     const [timeframe, setTimeframe] = useState('lifetime');
 
-    useEffect(() => {
-        if (!isPending && !session) router.push('/login');
-    }, [session, isPending, router]);
-
-    useEffect(() => {
-        if (session) fetchTracks();
-    }, [session, timeframe]);
-
-    const fetchTracks = async () => {
+    const fetchTracks = useCallback(async () => {
         try {
             const res = await axios.get(`${API_BASE_URL}/stats/top-tracks?timeframe=${timeframe}&limit=50`, { withCredentials: true });
             setTracks(res.data);
         } catch (error) {
             console.error("Failed to fetch tracks", error);
         }
-    };
+    }, [timeframe]);
+
+    useEffect(() => {
+        if (!isPending && !session) router.push('/login');
+    }, [session, isPending, router]);
+
+    useEffect(() => {
+        if (session && timeframe) {
+            fetchTracks();
+        }
+    }, [session, timeframe, fetchTracks]);
 
     const formatDuration = (ms: number) => {
         const hours = Math.floor(ms / (1000 * 60 * 60));
@@ -86,7 +101,7 @@ export default function TopTracksPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {tracks.map((track: any, i) => (
+                            {tracks.map((track, i) => (
                                 <tr key={track.id} className="hover:bg-secondary/30 transition-colors group cursor-default">
                                     <td className="px-6 py-4 text-muted-foreground font-black text-lg">{i + 1}</td>
                                     <td className="px-6 py-4">

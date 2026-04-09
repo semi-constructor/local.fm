@@ -41,8 +41,8 @@ interface TimeframeTabProps {
     formatDuration: (ms: number) => string;
     common: any;
     locale: string;
-    timeframe: string;
-    setTimeframe: (tf: string) => void;
+    timeframe: 'day' | 'week' | 'month' | 'year';
+    setTimeframe: (tf: 'day' | 'week' | 'month' | 'year') => void;
     session: any;
 }
 

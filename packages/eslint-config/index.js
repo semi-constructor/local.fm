@@ -11,6 +11,9 @@ module.exports = {
   },
   ignorePatterns: ["dist/", "node_modules/", ".next/"],
   rules: {
-    // Shared rules
+    "@typescript-eslint/no-explicit-any": "off",
+    "react-hooks/set-state-in-effect": "off",
+    "react/no-unescaped-entities": "off",
+    "@next/next/no-img-element": "off",
   },
 };

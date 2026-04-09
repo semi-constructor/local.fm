@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Music, ArrowRight, Settings, ExternalLink, Check, AlertCircle } from "lucide-react";
+import { Music, Settings, ExternalLink, Check, AlertCircle } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/api";
@@ -11,24 +11,21 @@ export default function SetupPage() {
     const [isChecking, setIsChecking] = useState(true);
     const router = useRouter();
 
-    const [formData, setFormData] = useState({
-        spotifyClientId: '',
-        spotifyClientSecret: '',
-        databaseUrl: 'postgresql://postgres:password@localhost:5432/localfm',
-        redisUrl: 'redis://localhost:6379',
-        frontendUrl: 'http://localhost:3000',
-        apiUrl: 'http://localhost:3001'
+    const [formData, setFormData] = useState(() => {
+        const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+        const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
+        
+        return {
+            spotifyClientId: '',
+            spotifyClientSecret: '',
+            databaseUrl: 'postgresql://postgres:password@localhost:5432/localfm',
+            redisUrl: 'redis://localhost:6379',
+            frontendUrl: `${protocol}//${hostname}:3000`,
+            apiUrl: `${protocol}//${hostname}:3001`
+        };
     });
 
     useEffect(() => {
-        // Try to auto-detect if we're running in docker or local
-        const hostname = window.location.hostname;
-        setFormData(prev => ({
-            ...prev,
-            frontendUrl: `${window.location.protocol}//${hostname}:3000`,
-            apiUrl: `${window.location.protocol}//${hostname}:3001`
-        }));
-
         fetch(`${API_BASE_URL}/setup/status`)
             .then(r => r.json())
             .then(data => {
@@ -101,7 +98,7 @@ export default function SetupPage() {
                     </div>
                     <h1 className="text-4xl font-black tracking-tighter mb-3">Welcome to local.fm</h1>
                     <p className="text-muted-foreground text-lg font-medium leading-relaxed">
-                        Let's get your self-hosted music dashboard set up. We need a few environment variables to start.
+                        Let&apos;s get your self-hosted music dashboard set up. We need a few environment variables to start.
                     </p>
                 </div>
                 

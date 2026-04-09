@@ -8,7 +8,9 @@ export type User = {
   dashboardPrefs?: any;
   recapPrefs?: any;
   publicId?: string | null;
-  isPublicStats: boolean;
+  image?: string | null;
+  isPublicStats?: boolean | null;
+  debugMode?: boolean | null;
   createdAt: Date;
   updatedAt: Date;
 };

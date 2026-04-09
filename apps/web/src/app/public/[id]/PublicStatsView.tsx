@@ -8,9 +8,65 @@ import { Music, Activity, Trophy, Clock, ExternalLink, Calendar, Disc } from 'lu
 import { cn } from '@/lib/utils';
 import { applyAccentColor, applyFontFamily } from '@/lib/theme';
 
-export default function PublicStatsView({ id, initialData, dict, common, locale }: any) {
+interface PublicUser {
+    name: string;
+    image?: string | null;
+    publicId: string;
+    accentColor?: string | null;
+    fontFamily?: string | null;
+}
+
+interface Summary {
+    totalStreams: number;
+    totalDurationMs: number;
+    distinctSongs: number;
+    distinctArtists: number;
+}
+
+interface TopTrack {
+    id: string;
+    name: string;
+    playCount: number;
+    totalDuration: number;
+    album?: { imageUrl?: string };
+    artists?: { name: string }[];
+}
+
+interface TopArtist {
+    id: string;
+    name: string;
+    imageUrl?: string | null;
+    playCount: number;
+}
+
+interface RecentTrack {
+    id: string;
+    track?: {
+        name: string;
+        album?: { imageUrl?: string };
+    };
+    playedAt: string;
+}
+
+interface PublicProfileData {
+    user: PublicUser;
+    summary: Summary;
+    topTracks: TopTrack[];
+    topArtists: TopArtist[];
+    recentTracks: RecentTrack[];
+}
+
+interface PublicStatsViewProps {
+    id: string;
+    initialData: PublicProfileData;
+    common: any;
+    dict: any;
+    locale: string;
+}
+
+export default function PublicStatsView({ id, initialData, common, dict, locale }: PublicStatsViewProps) {
     const [timeframe, setTimeframe] = useState('lifetime');
-    const [data, setData] = useState(initialData);
+    const [data, setData] = useState<PublicProfileData>(initialData);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -64,7 +120,7 @@ export default function PublicStatsView({ id, initialData, dict, common, locale 
                             <span className="px-3 py-1 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-primary/20">Public Stats</span>
                             <span className="px-3 py-1 bg-secondary text-muted-foreground text-[10px] font-black uppercase tracking-widest rounded-full">@{data.user?.publicId}</span>
                         </div>
-                        <h1 className="text-5xl font-black tracking-tighter mb-4">{data.user?.name}'s Music Stats</h1>
+                        <h1 className="text-5xl font-black tracking-tighter mb-4">{data.user?.name}&apos;s Music Stats</h1>
                         <p className="text-muted-foreground font-bold flex items-center justify-center md:justify-start gap-2">
                             <Activity className="w-4 h-4 text-primary animate-pulse" />
                             Sharing listening habits on local.fm
@@ -127,7 +183,7 @@ export default function PublicStatsView({ id, initialData, dict, common, locale 
                             Top Tracks
                         </h2>
                         <div className="space-y-6">
-                            {data.topTracks.map((track: any, i: number) => (
+                            {data.topTracks.map((track, i) => (
                                 <div key={track.id} className="flex items-center gap-6 group">
                                     <span className="text-3xl font-black italic opacity-10 w-8">{i + 1}</span>
                                     <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 shadow-lg shadow-black/20 transition-transform group-hover:scale-105">
@@ -154,7 +210,7 @@ export default function PublicStatsView({ id, initialData, dict, common, locale 
                                 Top Artists
                             </h2>
                             <div className="space-y-5">
-                                {data.topArtists.slice(0, 10).map((artist: any, i: number) => (
+                                {data.topArtists.slice(0, 10).map((artist) => (
                                     <div key={artist.id} className="flex items-center gap-4 group">
                                         <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-secondary group-hover:border-primary transition-colors">
                                             {artist.imageUrl ? (
@@ -180,7 +236,7 @@ export default function PublicStatsView({ id, initialData, dict, common, locale 
                                 Recently Played
                             </h2>
                             <div className="space-y-4">
-                                {data.recentTracks.map((stream: any) => (
+                                {data.recentTracks.map((stream) => (
                                     <div key={stream.id} className="flex items-center gap-4">
                                         <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 grayscale hover:grayscale-0 transition-all">
                                             <img src={stream.track?.album?.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -200,7 +256,14 @@ export default function PublicStatsView({ id, initialData, dict, common, locale 
     );
 }
 
-function StatCard({ icon, label, value, loading }: any) {
+interface StatCardProps {
+    icon: React.ReactNode;
+    label: string;
+    value: string;
+    loading: boolean;
+}
+
+function StatCard({ icon, label, value, loading }: StatCardProps) {
     return (
         <Card premium className={cn("p-8 rounded-[32px] transition-all relative overflow-hidden group", loading && "opacity-50 blur-[2px]")}>
             <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] group-hover:scale-110 transition-all duration-700">

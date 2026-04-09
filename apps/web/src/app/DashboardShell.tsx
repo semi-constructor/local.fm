@@ -3,18 +3,14 @@
 import { API_BASE_URL } from "@/lib/api";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Music, Clock, BarChart3, ChevronRight, Play, Flame, LayoutDashboard, Calendar, Trophy, ListMusic, User, Disc, Activity, RotateCcw, Settings, LogOut, ExternalLink, Link2, Unlink } from "lucide-react";
+import { Music, Clock, ChevronRight, Play, Flame, LayoutDashboard, Calendar, Trophy, User, Activity, RotateCcw, Settings, LogOut, Link2 } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { Card, StatCard } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-    Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, 
-    ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip 
-} from 'recharts';
 
 import { LifetimeTab } from "./LifetimeTab";
 import { TimeframeTab } from "./TimeframeTab";
@@ -113,8 +109,8 @@ interface DashboardShellProps {
     session: { user: DBUser } | null;
     dict: DashboardDict;
     common: CommonDict;
-    historyDict: any; // Define if possible, otherwise use a more specific type than any
-    settingsDict: any;
+    historyDict: Record<string, any>;
+    settingsDict: Record<string, any>;
     locale: string;
 }
 
@@ -141,6 +137,78 @@ export default function DashboardShell({ session, dict, common, historyDict, set
     const [topGenres, setTopGenres] = useState<GenreData[]>([]);
     const [heatmap, setHeatmap] = useState<any[]>([]);
     const [imports, setImports] = useState<Import[]>([]);
+
+    const isVisible = (sectionId: string) => {
+        let prefs = session?.user?.dashboardPrefs;
+        if (typeof prefs === 'string') {
+            try {
+                prefs = JSON.parse(prefs);
+            } catch (e) {}
+        }
+        if (!prefs || typeof prefs !== 'object') return true;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (prefs as any)[sectionId] !== false;
+    };
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            await axios.post(`${API_BASE_URL}/import/upload`, formData, {
+                withCredentials: true,
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            alert("Upload successful! Import is now processing.");
+            fetchImports();
+        } catch (error: any) {
+            console.error(error);
+            alert(error.response?.data?.error || "Upload failed");
+        }
+    };
+
+    const fetchMainData = () => {
+        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (mainTab === 'main') {
+            axios.get(`${API_BASE_URL}/stats/recently-played`, { withCredentials: true }).then(r => setRecentlyPlayed(r.data));
+            axios.get(`${API_BASE_URL}/stats/summary?timeframe=day&timezone=${timezone}`, { withCredentials: true }).then(r => setSummary(r.data));
+        }
+    };
+
+    const fetchImports = async () => {
+        try {
+            const res = await axios.get(`${API_BASE_URL}/import/list`, { withCredentials: true });
+            const newImports = res?.data || [];
+            
+            // Check if any import just finished
+            const wasProcessing = imports.some((i: any) => i.status === 'PROCESSING' || i.status === 'PENDING');
+            const isDone = newImports.some((i: any) => i.status === 'COMPLETED' && imports.find((old: any) => old.id === i.id)?.status !== 'COMPLETED');
+            
+            if (wasProcessing && isDone) {
+                console.log("Import detected as completed, refreshing stats...");
+                fetchMainData();
+            }
+            
+            setImports(newImports);
+        } catch (error) { console.error(error); }
+    };
+
+    const fetchSpotifyStatus = async () => {
+        try {
+            const res = await axios.get(`${API_BASE_URL}/connect/spotify/status`, { withCredentials: true });
+            setSpotifyStatus(res?.data || null);
+        } catch (error) { console.error(error); }
+    };
+
+    const fetchCurrentlyPlaying = async () => {
+        try {
+            const res = await axios.get(`${API_BASE_URL}/stats/currently-playing`, { withCredentials: true });
+            setCurrentlyPlaying(res?.data || null);
+        } catch (error) { console.error(error); }
+    };
 
     // Polling Currently Playing and Status
     useEffect(() => {
@@ -172,78 +240,7 @@ export default function DashboardShell({ session, dict, common, historyDict, set
             clearInterval(interval);
             clearInterval(slowInterval);
         };
-    }, [mainTab, session]); // Re-run when tab changes or session updates
-
-    const isVisible = (sectionId: string) => {
-        let prefs = session?.user?.dashboardPrefs;
-        if (typeof prefs === 'string') {
-            try {
-                prefs = JSON.parse(prefs);
-            } catch (e) {}
-        }
-        if (!prefs || typeof prefs !== 'object') return true;
-        return prefs[sectionId] !== false;
-    };
-
-    const fetchImports = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/import/list`, { withCredentials: true });
-            const newImports = res?.data || [];
-            
-            // Check if any import just finished
-            const wasProcessing = imports.some((i: any) => i.status === 'PROCESSING' || i.status === 'PENDING');
-            const isDone = newImports.some((i: any) => i.status === 'COMPLETED' && imports.find((old: any) => old.id === i.id)?.status !== 'COMPLETED');
-            
-            if (wasProcessing && isDone) {
-                console.log("Import detected as completed, refreshing stats...");
-                fetchMainData();
-            }
-            
-            setImports(newImports);
-        } catch (error) { console.error(error); }
-    };
-
-    const fetchMainData = () => {
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        if (mainTab === 'main') {
-            axios.get(`${API_BASE_URL}/stats/recently-played`, { withCredentials: true }).then(r => setRecentlyPlayed(r.data));
-            axios.get(`${API_BASE_URL}/stats/summary?timeframe=day&timezone=${timezone}`, { withCredentials: true }).then(r => setSummary(r.data));
-        }
-    };
-
-    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const res = await axios.post(`${API_BASE_URL}/import/upload`, formData, {
-                withCredentials: true,
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            alert("Upload successful! Import is now processing.");
-            fetchImports();
-        } catch (error: any) {
-            console.error(error);
-            alert(error.response?.data?.error || "Upload failed");
-        }
-    };
-
-    const fetchSpotifyStatus = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/connect/spotify/status`, { withCredentials: true });
-            setSpotifyStatus(res?.data || null);
-        } catch (error) { console.error(error); }
-    };
-
-    const fetchCurrentlyPlaying = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL}/stats/currently-playing`, { withCredentials: true });
-            setCurrentlyPlaying(res?.data || null);
-        } catch (error) { console.error(error); }
-    };
+    }, [mainTab, session, fetchCurrentlyPlaying, fetchSpotifyStatus, fetchImports]); // Re-run when tab changes or session updates
 
     // Fetch Data based on Tabs
     useEffect(() => {
@@ -377,6 +374,7 @@ export default function DashboardShell({ session, dict, common, historyDict, set
                                     </span>
                                 </div>
                                 <div className="w-7 h-7 rounded-full border border-border/50 overflow-hidden flex items-center justify-center bg-background">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
                                     {session?.user?.image ? <img src={session.user.image} alt="" className="w-full h-full object-cover" /> : <User className="w-3.5 h-3.5" />}
                                 </div>
                             </button>
@@ -589,12 +587,12 @@ export default function DashboardShell({ session, dict, common, historyDict, set
                             topGenres={topGenres} 
                             formatDuration={formatDuration} 
                             common={common} 
-                            locale={locale} 
-                            timeframe={timeframe} 
-                            setTimeframe={setTimeframe} 
-                        />
-                    )}
-
+                            locale={locale}
+                            timeframe={timeframe}
+                            setTimeframe={setTimeframe}
+                            session={session}
+                            />
+                            )}
                     {mainTab === 'top' && (
                         <TopTab 
                             topTracks={topTracks} 

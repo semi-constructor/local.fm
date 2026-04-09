@@ -2,6 +2,7 @@ import { getDictionary, getLocale } from "@/lib/i18n";
 import PublicStatsView from "./[id]/PublicStatsView";
 import axios from "axios";
 import { API_BASE_URL } from "@/lib/api";
+import Link from "next/link";
 
 export default async function GenericPublicProfilePage() {
     const dict = await getDictionary("dashboard");
@@ -25,9 +26,9 @@ export default async function GenericPublicProfilePage() {
                <p className="text-muted-foreground font-bold max-w-md">
                    {error || "This profile is private or does not exist."}
                </p>
-               <a href="/" className="mt-8 px-8 py-3 bg-foreground text-background rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all">
+               <Link href="/" className="mt-8 px-8 py-3 bg-foreground text-background rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all">
                    Go Back Home
-               </a>
+               </Link>
            </div>
         );
     }

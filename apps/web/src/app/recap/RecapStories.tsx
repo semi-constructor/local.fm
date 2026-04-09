@@ -1,11 +1,20 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import { Music, Clock, X, ChevronRight, ChevronLeft, Share2, Trophy, Flame, User } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Music, Clock, X, ChevronRight, ChevronLeft, Share2, Flame, User } from 'lucide-react';
 import Link from 'next/link';
 
 const SLIDE_DURATION = 5000; // 5 seconds per slide
+
+interface Dict {
+    intro: { title: string; subtitle: string };
+    minutes: { title: string; subtitle: string };
+    artist: { title: string; subtitle: string };
+    track: { title: string; subtitle: string };
+    genres: { title: string };
+    summary: { title: string; minutes: string; track: string; share: string; noData: string };
+}
 
 interface RecapData {
     year: number;
@@ -28,7 +37,7 @@ interface RecapData {
 
 interface RecapStoriesProps {
     data: RecapData;
-    dict: any; // Ideally this would be typed too
+    dict: Dict;
     prefs: {
         animation?: boolean;
         showGenres?: boolean;

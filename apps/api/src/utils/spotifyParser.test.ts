@@ -6,7 +6,7 @@ jest.mock('database', () => ({
   prisma: {
     artist: { findFirst: jest.fn(), create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     album: { findFirst: jest.fn(), create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
-    track: { create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
+    track: { findFirst: jest.fn(), create: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
     stream: { createMany: jest.fn(), findMany: jest.fn().mockResolvedValue([]) },
   },
 }));

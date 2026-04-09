@@ -13,6 +13,33 @@ A self-hosted music statistics dashboard that brings scrobbling back to your own
 - Modern Interface: Clean, responsive dashboard with dark mode and customizable accent colors.
 - Localized: Full support for English and German.
 
+## Screenshots
+
+<div align="center">
+  <h3>Landing Page & Dashboard</h3>
+  <img src="screenshots/landing.png" alt="local.fm Landing Page" width="800">
+  <br><br>
+  
+  <h3>Listening History</h3>
+  <img src="screenshots/history.png" alt="local.fm History View" width="800">
+  <br><br>
+  
+  <h3>Top Artists & Analytics</h3>
+  <img src="screenshots/top-artists.png" alt="local.fm Top Artists" width="800">
+  <br><br>
+  
+  <h3>Lifetime Statistics</h3>
+  <img src="screenshots/lifetime.png" alt="local.fm Lifetime Stats" width="800">
+  <br><br>
+  
+  <h3>Yearly Recap</h3>
+  <img src="screenshots/recap.png" alt="local.fm Recap Stories" width="800">
+  <br><br>
+  
+  <h3>Settings & Customization</h3>
+  <img src="screenshots/settings.png" alt="local.fm Settings" width="800">
+</div>
+
 ## Tech Stack & Credits
 
 This project is built using modern web technologies and frameworks:
