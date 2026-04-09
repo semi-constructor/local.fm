@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import RecapStories from "./RecapStories";
 import axios from "axios";
 import { API_BASE_URL } from "@/lib/api";
+import { User } from "types";
 
 export default async function Page() {
     const { data: session } = await authClient.getSession({
@@ -19,8 +20,9 @@ export default async function Page() {
     }
 
     const dict = await getDictionary("recap");
+    const user = session.user as User;
     
-    let recapPrefs = (session.user as any)?.recapPrefs || { year: new Date().getFullYear(), showGenres: true, showActiveDay: true, animation: true };
+    let recapPrefs = user?.recapPrefs || { year: new Date().getFullYear(), showGenres: true, showActiveDay: true, animation: true };
     if (typeof recapPrefs === 'string') {
         try {
             recapPrefs = JSON.parse(recapPrefs);

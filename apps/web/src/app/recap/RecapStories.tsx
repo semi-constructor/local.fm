@@ -7,13 +7,46 @@ import Link from 'next/link';
 
 const SLIDE_DURATION = 5000; // 5 seconds per slide
 
-export default function RecapStories({ data, dict, prefs }: { data: any, dict: any, prefs: any }) {
+interface RecapData {
+    year: number;
+    totalMinutes: number;
+    topArtist: {
+        name: string;
+        imageUrl?: string | null;
+    };
+    topTrack: {
+        name: string;
+        imageUrl?: string | null;
+        artistName: string;
+    };
+    topGenres: string[];
+    mostActiveDay: {
+        date: string;
+        count: number;
+    };
+}
+
+interface RecapStoriesProps {
+    data: RecapData;
+    dict: any; // Ideally this would be typed too
+    prefs: {
+        animation?: boolean;
+        showGenres?: boolean;
+        showActiveDay?: boolean;
+    };
+}
+
+export default function RecapStories({ data, dict, prefs }: RecapStoriesProps) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const [progress, setProgress] = useState(0);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const startTimeRef = useRef<number>(Date.now());
+    const startTimeRef = useRef<number>(0);
     const pausedTimeRef = useRef<number>(0);
+
+    useEffect(() => {
+        startTimeRef.current = Date.now();
+    }, []);
 
     const useAnimations = prefs.animation !== false;
 

@@ -8,19 +8,48 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Artist, Album, Track, Stream } from "types";
 
-export default function HistoryView({ dict, locale }: { dict: any, locale: string }) {
-    const [streams, setStreams] = useState<any[]>([]);
+interface HistoryDict {
+    backToDashboard: string;
+    title: string;
+    subtitle: string;
+    pagination: {
+        prev: string;
+        next: string;
+    };
+}
+
+type StreamWithDetails = Stream & {
+    track: Track & {
+        artists: Artist[];
+        album: Album;
+    };
+};
+
+export default function HistoryView({ dict, locale }: { dict: HistoryDict, locale: string }) {
+    const [streams, setStreams] = useState<StreamWithDetails[]>([]);
     const [page, setPage] = useState(1);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        let isMounted = true;
         setLoading(true);
         axios.get(`${API_BASE_URL}/stats/recently-played?page=${page}&limit=50`, { withCredentials: true })
-            .then(res => setStreams(res.data))
+            .then(res => {
+                if (isMounted) setStreams(res.data);
+            })
             .catch(err => console.error(err))
-            .finally(() => setLoading(false));
+            .finally(() => {
+                if (isMounted) setLoading(false);
+            });
+        return () => { isMounted = false; };
     }, [page]);
+
+    const handlePageChange = (newPage: number) => {
+        setPage(newPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -49,7 +78,7 @@ export default function HistoryView({ dict, locale }: { dict: any, locale: strin
                                 <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin mb-4" />
                                 <p className="font-bold text-xs uppercase tracking-widest opacity-50">Laden...</p>
                             </div>
-                        ) : streams.map((stream: any, i) => (
+                        ) : streams.map((stream, i) => (
                             <Link 
                                 key={stream.id + i} 
                                 href={`/track/${stream.track.id}`}
@@ -62,7 +91,7 @@ export default function HistoryView({ dict, locale }: { dict: any, locale: strin
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-black text-lg truncate group-hover:text-primary transition tracking-tight">{stream.track.name}</h4>
-                                    <p className="text-sm text-muted-foreground font-bold truncate opacity-80">{stream.track.artists?.map((a: any) => a.name).join(', ')}</p>
+                                    <p className="text-sm text-muted-foreground font-bold truncate opacity-80">{stream.track.artists?.map(a => a.name).join(', ')}</p>
                                 </div>
                                 <div className="text-right hidden sm:block">
                                     <div className="flex items-center justify-end gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
@@ -83,7 +112,7 @@ export default function HistoryView({ dict, locale }: { dict: any, locale: strin
                 <div className="mt-12 flex items-center justify-center gap-6">
                     <button 
                         disabled={page === 1}
-                        onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        onClick={() => handlePageChange(page - 1)}
                         className="flex items-center gap-2 px-8 py-3 bg-card border border-border/50 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] disabled:opacity-30 hover:bg-secondary/50 transition-all shadow-sm active:scale-95"
                     >
                         <ChevronLeft className="w-4 h-4" />
@@ -93,7 +122,7 @@ export default function HistoryView({ dict, locale }: { dict: any, locale: strin
                          <span className="font-black text-lg tabular-nums text-primary">{page}</span>
                     </div>
                     <button 
-                        onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        onClick={() => handlePageChange(page + 1)}
                         className="flex items-center gap-2 px-8 py-3 bg-card border border-border/50 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-secondary/50 transition-all shadow-sm active:scale-95"
                     >
                         {dict.pagination.next}

@@ -8,7 +8,13 @@ import {
 } from 'recharts';
 import { cn } from "@/lib/utils";
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface CustomTooltipProps {
+    active?: boolean;
+    payload?: { value: number }[];
+    label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
         return (
             <div className="bg-card border border-border/50 p-3 rounded-xl shadow-xl backdrop-blur-md">
@@ -20,18 +26,32 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return null;
 };
 
+interface TimeframeTabProps {
+    summary: {
+        totalStreams?: number;
+        distinctSongs?: number;
+        distinctArtists?: number;
+        totalDurationMs?: number;
+    } | null;
+    habits: {
+        hourly?: { hour: number; streams: number }[];
+        weekday?: { day: number; streams: number }[];
+    } | null;
+    topGenres: { name: string; duration: number }[];
+    formatDuration: (ms: number) => string;
+    common: any;
+    locale: string;
+    timeframe: string;
+    setTimeframe: (tf: string) => void;
+    session: any;
+}
+
 export function TimeframeTab({ 
     summary, habits, topGenres, formatDuration, common, locale, timeframe, setTimeframe, session 
-}: any) {
+}: TimeframeTabProps) {
     if (!summary || !habits) return null;
 
-    const isVisible = (sectionId: string) => {
-        const prefs = session?.user?.dashboardPrefs;
-        if (!prefs || typeof prefs !== 'object') return true;
-        return prefs[sectionId] !== false;
-    };
-
-    const clockChartData = habits?.hourly?.map((h: any) => {
+    const clockChartData = habits?.hourly?.map((h) => {
         const ampm = h.hour >= 12 ? 'PM' : 'AM';
         const displayHour = h.hour % 12 || 12;
         return {

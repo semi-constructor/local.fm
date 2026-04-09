@@ -5,11 +5,25 @@ import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+interface TopTabProps {
+    topTracks: any[];
+    topArtists: any[];
+    topAlbums: any[];
+    topGenres: any[];
+    formatDuration: (ms: number) => string;
+    common: any;
+    timeframe: string;
+    setTimeframe: (tf: string) => void;
+    topSubTab: string;
+    setTopSubTab: (tab: string) => void;
+    isVisible: (sectionId: string) => boolean;
+}
+
 export function TopTab({ 
     topTracks, topArtists, topAlbums, topGenres, 
     formatDuration, common, timeframe, setTimeframe, 
     topSubTab, setTopSubTab, isVisible 
-}: any) {
+}: TopTabProps) {
     
     const timeframes = ['day', 'week', 'month', 'year'];
     const subTabs = [
@@ -27,7 +41,7 @@ export function TopTab({
                     {timeframes.map((tf) => (
                         <button
                             key={tf}
-                            onClick={() => setTimeframe(tf as any)}
+                            onClick={() => setTimeframe(tf)}
                             className={cn(
                                 "px-6 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
                                 timeframe === tf ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20" : "text-muted-foreground hover:text-foreground"
@@ -42,7 +56,7 @@ export function TopTab({
                     {subTabs.map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setTopSubTab(tab.id as any)}
+                            onClick={() => setTopSubTab(tab.id)}
                             className={cn(
                                 "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
                                 topSubTab === tab.id ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20" : "text-muted-foreground hover:text-foreground"
@@ -68,6 +82,7 @@ export function TopTab({
                                 <div className="text-muted-foreground font-black text-sm w-6 text-center opacity-30 group-hover:text-primary group-hover:opacity-100 transition-all">{i + 1}</div>
                                 <div className="w-12 h-12 rounded-lg overflow-hidden border border-border/50 flex-shrink-0 shadow-sm">
                                     {track?.album?.imageUrl ? (
+                                        /* eslint-disable-next-line @next/next/no-img-element */
                                         <img src={track.album.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                     ) : <div className="w-full h-full bg-secondary flex items-center justify-center"><Music className="w-4 h-4" /></div>}
                                 </div>
@@ -96,6 +111,7 @@ export function TopTab({
                             <div className="text-muted-foreground font-black text-sm w-6 opacity-30">{i + 1}</div>
                             <div className="w-16 h-16 rounded-full overflow-hidden border border-border/50 flex-shrink-0 shadow-sm bg-secondary">
                                 {artist?.imageUrl ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
                                     <img src={artist.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                 ) : <div className="w-full h-full flex items-center justify-center"><User className="w-6 h-6" /></div>}
                             </div>
@@ -119,6 +135,7 @@ export function TopTab({
                             <div className="text-muted-foreground font-black text-sm w-6 opacity-30">{i + 1}</div>
                             <div className="w-16 h-16 rounded-xl overflow-hidden border border-border/50 flex-shrink-0 shadow-sm bg-secondary">
                                 {album?.imageUrl ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
                                     <img src={album.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                 ) : <div className="w-full h-full flex items-center justify-center"><Disc className="w-6 h-6" /></div>}
                             </div>
@@ -168,9 +185,10 @@ export function TopTab({
                         <Trophy className="w-8 h-8 text-muted-foreground" />
                     </div>
                     <h3 className="text-xl font-black tracking-tighter">Section Hidden</h3>
-                    <p className="text-sm font-bold text-muted-foreground">You've disabled this section in settings.</p>
+                    <p className="text-sm font-bold text-muted-foreground">You&apos;ve disabled this section in settings.</p>
                 </div>
             )}
         </div>
     );
 }
+

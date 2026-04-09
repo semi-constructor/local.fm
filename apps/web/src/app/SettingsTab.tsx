@@ -17,7 +17,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { applyAccentColor, applyFontFamily, ACCENT_COLORS } from '@/lib/theme';
 
-export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSection: initialSection, session }: any) {
+interface SettingsTabProps {
+    dict: any;
+    locale: string;
+    spotifyStatus: any;
+    disconnect: (platform: string) => void;
+    activeSection?: string;
+    session: any;
+}
+
+export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSection: initialSection, session }: SettingsTabProps) {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [activeSection, setActiveSection] = useState(initialSection || 'appearance');
@@ -26,9 +35,10 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
     const [accentColor, setAccentColor] = useState('violet');
     const [fontFamily, setFontFamily] = useState('sans');
     const [isPublic, setIsPublic] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [publicId, setPublicId] = useState('');
     const [isDebugMode, setIsDebugMode] = useState(false);
-    const [dashboardPrefs, setDashboardPrefs] = useState<any>({
+    const [dashboardPrefs, setDashboardPrefs] = useState<Record<string, boolean>>({
         summary: true,
         currentlyPlaying: true,
         recentlyPlayed: true,
@@ -38,7 +48,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
         heatmap: true,
         genres: true
     });
-    const [recapPrefs, setRecapPrefs] = useState<any>({
+    const [recapPrefs, setRecapPrefs] = useState<Record<string, any>>({
         year: new Date().getFullYear(),
         showGenres: true,
         showActiveDay: true,
@@ -62,6 +72,13 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
     useEffect(() => {
         setMounted(true);
         
+        const fetchSystemHealth = async () => {
+            try {
+                const res = await axios.get(`${API_BASE_URL.replace('/api', '')}/health`);
+                setSystemHealth(res.data);
+            } catch (e) { console.error(e); }
+        };
+
         // Load settings from session (Database)
         if (session?.user) {
             setPublicId(session.user.publicId || '');
@@ -86,13 +103,6 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
 
         fetchSystemHealth();
     }, [session]);
-
-    const fetchSystemHealth = async () => {
-        try {
-            const res = await axios.get(`${API_BASE_URL.replace('/api', '')}/health`);
-            setSystemHealth(res.data);
-        } catch (e) { console.error(e); }
-    };
 
     const addLog = (msg: string) => {
         setDebugLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);

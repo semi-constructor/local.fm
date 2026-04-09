@@ -22,15 +22,103 @@ import { TopTab } from "./TopTab";
 import { HistoryTab } from "./HistoryTab";
 import { SettingsTab } from "./SettingsTab";
 import { applyAccentColor, applyFontFamily } from "@/lib/theme";
+import { User as DBUser, Artist, Album, Track, Stream, Import } from "types";
 
-export default function DashboardShell({ session, dict, common, historyDict, settingsDict, locale }: { 
-    session: any, 
-    dict: any, 
-    common: any, 
-    historyDict: any,
-    settingsDict: any,
-    locale: string 
-}) {
+interface NavItem {
+    id: string;
+    icon: React.ReactNode;
+    label: string;
+    isLink?: boolean;
+    href?: string;
+}
+
+interface CommonDict {
+    nav: {
+        main: string;
+        history: string;
+        lifetime: string;
+        timeframe: string;
+        top: string;
+        recaps: string;
+    };
+    common: {
+        loading: string;
+        error: string;
+        viewAll: string;
+        streams: string;
+        minutes: string;
+        artists: string;
+        albums: string;
+        tracks: string;
+        genres: string;
+    };
+}
+
+interface DashboardDict {
+    hero: {
+        currentlyListening: string;
+        paused: string;
+        nowPlaying: string;
+    };
+    today: {
+        title: string;
+        streams: string;
+        timeListened: string;
+    };
+    recap: {
+        title: string;
+        subtitle: string;
+    };
+    recent: {
+        title: string;
+    };
+    genres: {
+        title: string;
+        subtitle: string;
+    };
+}
+
+interface SpotifyStatus {
+    status: 'connected' | 'expired' | 'disconnected' | 'checking';
+    lastSync?: string;
+}
+
+interface CurrentlyPlaying {
+    isPlaying: boolean;
+    progressMs: number;
+    durationMs: number;
+    track: Track & {
+        artists: Artist[];
+        album: Album;
+    };
+}
+
+interface SummaryData {
+    totalStreams: number;
+    totalDurationMs: number;
+}
+
+interface GenreData {
+    name: string;
+    duration: number;
+}
+
+interface HabitData {
+    // Add properties if known, or use Record<string, any> if truly dynamic, 
+    // but better than 'any'
+    [key: string]: any; 
+}
+
+interface DashboardShellProps {
+    session: { user: DBUser } | null;
+    dict: DashboardDict;
+    common: CommonDict;
+    historyDict: any; // Define if possible, otherwise use a more specific type than any
+    settingsDict: any;
+    locale: string;
+}
+
+export default function DashboardShell({ session, dict, common, historyDict, settingsDict, locale }: DashboardShellProps) {
     // Tabs
     const [mainTab, setMainTab] = useState<'main' | 'lifetime' | 'timeframe' | 'top' | 'history' | 'settings'>('main');
     const [settingsSection, setSettingsSection] = useState('appearance');
@@ -42,17 +130,17 @@ export default function DashboardShell({ session, dict, common, historyDict, set
     const [activeModal, setActiveModal] = useState<'settings' | 'connections' | 'import' | null>(null);
     
     // Data State
-    const [spotifyStatus, setSpotifyStatus] = useState<any>(null);
-    const [currentlyPlaying, setCurrentlyPlaying] = useState<any>(null);
-    const [recentlyPlayed, setRecentlyPlayed] = useState<any[]>([]);
-    const [summary, setSummary] = useState<any>(null);
-    const [habits, setHabits] = useState<any>(null);
+    const [spotifyStatus, setSpotifyStatus] = useState<SpotifyStatus | null>(null);
+    const [currentlyPlaying, setCurrentlyPlaying] = useState<CurrentlyPlaying | null>(null);
+    const [recentlyPlayed, setRecentlyPlayed] = useState<(Stream & { track: Track & { artists: Artist[], album: Album } })[]>([]);
+    const [summary, setSummary] = useState<SummaryData | null>(null);
+    const [habits, setHabits] = useState<HabitData | null>(null);
     const [topTracks, setTopTracks] = useState<any[]>([]);
     const [topArtists, setTopArtists] = useState<any[]>([]);
     const [topAlbums, setTopAlbums] = useState<any[]>([]);
-    const [topGenres, setTopGenres] = useState<any[]>([]);
+    const [topGenres, setTopGenres] = useState<GenreData[]>([]);
     const [heatmap, setHeatmap] = useState<any[]>([]);
-    const [imports, setImports] = useState<any[]>([]);
+    const [imports, setImports] = useState<Import[]>([]);
 
     // Polling Currently Playing and Status
     useEffect(() => {
