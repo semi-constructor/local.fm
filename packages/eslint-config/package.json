@@ -4,6 +4,6 @@
   "private": true,
   "main": "index.js",
   "dependencies": {
-    "eslint": "^8.56.0"
+    "eslint": "^10.2.0"
   }
 }
