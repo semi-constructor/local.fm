@@ -4,33 +4,37 @@ A self-hosted music statistics dashboard that brings scrobbling back to your own
 
 ## Features
 
-- **Spotify Realtime Sync**: Automatically track your listening habits from Spotify.
-- **Historical Data**: Import your entire Spotify streaming history (JSON exports).
-- **In-Depth Analytics**: View top tracks, artists, and albums over various timeframes.
-- **Public Stats Sharing**: Share your listening statistics with a public link.
-- **Visual Insights**: Interactive heatmaps, habit distributions, and genre breakdowns.
-- **Privacy First**: All data is stored in your own PostgreSQL database.
-- **Modern Interface**: Clean, responsive dashboard with dark mode and customizable accent colors.
-- **Localized**: Support for English and German.
+- Spotify Realtime Sync: Automatically track your listening habits from Spotify.
+- Historical Data: Import your entire Spotify streaming history (JSON exports).
+- In-Depth Analytics: View top tracks, artists, and albums over various timeframes.
+- Public Stats Sharing: Share your listening statistics with a public link.
+- Visual Insights: Interactive heatmaps, habit distributions, and genre breakdowns.
+- Privacy First: All data is stored in your own PostgreSQL database.
+- Modern Interface: Clean, responsive dashboard with dark mode and customizable accent colors.
+- Localized: Full support for English and German.
 
-## Tech Stack
+## Tech Stack & Credits
 
-- **Frontend**: Next.js 15, Tailwind CSS, Framer Motion, Recharts.
-- **Backend**: Node.js, Express, BullMQ (for background processing).
-- **Database**: PostgreSQL, Prisma ORM.
-- **Cache/Queue**: Redis.
-- **Authentication**: BetterAuth.
+This project is built using modern web technologies and frameworks:
+
+- Frontend: Next.js (React), Tailwind CSS, Framer Motion, Recharts.
+- Backend: Node.js (Express), BullMQ, Redis.
+- Database: PostgreSQL, Prisma ORM.
+- Authentication: BetterAuth.
+- Monorepo Management: Turborepo.
+- Icons: Lucide React.
+- Fonts: Google Fonts (Geist, Archivo Black, Crimson Pro).
+
+Special thanks to the open-source communities behind these projects.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18 or higher.
-- PostgreSQL database.
-- Redis server.
-- Spotify Developer Application (for Spotify sync).
+- Docker and Docker Compose (Recommended)
+- OR Node.js 20+, PostgreSQL, and Redis.
 
-### Installation
+### Installation via Docker (Recommended)
 
 1. Clone the repository:
    ```bash
@@ -38,32 +42,47 @@ A self-hosted music statistics dashboard that brings scrobbling back to your own
    cd local.fm
    ```
 
-2. Install dependencies:
+2. Configure environment variables:
+   Copy `.env.example` to `.env` and fill in your Spotify credentials.
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Launch the stack:
+   ```bash
+   docker-compose up -d
+   ```
+
+4. Access the dashboard:
+   The web interface is available at `http://localhost:3000`.
+
+### Manual Installation
+
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-3. Configure environment variables:
-   Copy `.env.example` to `.env` and fill in your credentials.
+2. Configure environment variables in `.env`.
 
-4. Setup the database:
+3. Setup the database schema:
    ```bash
-   npx turbo db:push
+   npx prisma db push --schema=packages/database/prisma/schema.prisma
    ```
 
-5. Start the development server:
+4. Start the development server:
    ```bash
    npm run dev
    ```
 
 ## Development
 
-The project is managed as a monorepo using Turbo:
+The project is structured as a monorepo:
 
-- `apps/web`: Next.js frontend application.
-- `apps/api`: Express backend server and workers.
-- `packages/database`: Prisma schema and client.
-- `packages/types`: Shared TypeScript definitions.
+- apps/web: Next.js frontend.
+- apps/api: Express backend server and background workers.
+- packages/database: Shared Prisma schema and database client.
+- packages/types: Shared TypeScript interfaces.
 
 ## License
 

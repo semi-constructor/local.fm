@@ -27,7 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Root Layout Compilation**: Fixed a crash in `apps/web/src/app/layout.tsx` by making `RootLayout` an `async` function and adding missing imports for `headers` and `authClient`.
 - **Global Theme Application**: Resolved an issue where dark mode hardcoded primary colors would override user-selected accent colors.
 - **Theme State Management**: Fixed a bug where theme changes wouldn't always apply immediately after a session update.
-- **Preference Storage Bug**: Fixed a bug where dashboard and recap preferences were incorrectly stored as JSON objects instead of strings, causing them to fail to load after a reload.
+- Preference Storage Bug: Fixed a bug where dashboard and recap preferences were incorrectly stored as JSON objects instead of strings, causing them to fail to load after a reload.
+- **Docker Image Optimization**: Optimized `Dockerfile` with multi-stage builds and added `.dockerignore` to reduce image size and improve security.
+- **Documentation Overhaul**: Completely rewrote `README.md` for better clarity, including Docker setup instructions and technology credits.
 
 ### Changed
 - Improved project repository infrastructure.
