@@ -15,5 +15,9 @@
   },
   "recent": {
     "title": "Zuletzt gehört"
+  },
+  "genres": {
+    "title": "Top Genres",
+    "subtitle": "Basierend auf deinem Verlauf"
   }
 }

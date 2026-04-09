@@ -7,9 +7,10 @@ import axios from "axios";
 import { API_BASE_URL } from "@/lib/api";
 
 export default async function Page() {
-    const session = await authClient.getSession({
+    const { data: session } = await authClient.getSession({
         fetchOptions: {
-            headers: await headers()
+            headers: await headers(),
+            cache: 'no-store'
         }
     });
 
@@ -19,8 +20,15 @@ export default async function Page() {
 
     const dict = await getDictionary("recap");
     
-    const recapPrefs = (session.user as any)?.recapPrefs || { year: new Date().getFullYear(), showGenres: true, showActiveDay: true, animation: true };
-    const year = recapPrefs.year;
+    let recapPrefs = (session.user as any)?.recapPrefs || { year: new Date().getFullYear(), showGenres: true, showActiveDay: true, animation: true };
+    if (typeof recapPrefs === 'string') {
+        try {
+            recapPrefs = JSON.parse(recapPrefs);
+        } catch (e) {
+            recapPrefs = { year: new Date().getFullYear(), showGenres: true, showActiveDay: true, animation: true };
+        }
+    }
+    const year = recapPrefs.year || new Date().getFullYear();
 
     // Fetch recap data server-side
     let data = null;

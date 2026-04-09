@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Archivo_Black, Crimson_Pro } from "next/font/google";
+import { headers } from "next/headers";
+import { authClient } from "@/lib/auth";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -29,44 +31,53 @@ export const metadata: Metadata = {
   description: "Self-hostable music statistics platform.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              try {
-                // 1. Font Family
-                const font = localStorage.getItem('font-family') || 'sans';
-                const fonts = {
-                  sans: 'var(--font-geist-sans)',
-                  mono: 'var(--font-geist-mono)',
-                  serif: 'var(--font-crimson-pro)',
-                  black: 'var(--font-archivo-black)'
-                };
-                document.documentElement.style.setProperty('--font-family', fonts[font] || fonts.sans);
+  const { data: session } = await authClient.getSession({
+    fetchOptions: {
+      headers: await headers(),
+      cache: 'no-store'
+    }
+  });
 
-                // 2. Accent Color
-                const accent = localStorage.getItem('accent-color') || 'violet';
-                const accents = {
-                  violet: '262 83% 58%',
-                  green: '142 71% 45%',
-                  blue: '217 91% 60%',
-                  amber: '38 92% 50%'
-                };
-                document.documentElement.style.setProperty('--primary', accents[accent] || accents.violet);
-              } catch (e) {}
-            })()
+  const accent = session?.user?.accentColor || 'violet';
+  const font = session?.user?.fontFamily || 'sans';
+
+  const accents: Record<string, string> = {
+    violet: '262 83% 58%',
+    green: '142 71% 45%',
+    blue: '217 91% 60%',
+    amber: '38 92% 50%'
+  };
+
+  const fonts: Record<string, string> = {
+    sans: 'var(--font-geist-sans)',
+    mono: 'var(--font-geist-mono)',
+    serif: 'var(--font-crimson-pro)',
+    black: 'var(--font-archivo-black)'
+  };
+
+  const primaryColor = accents[accent] || accents.violet;
+  const fontFamily = fonts[font] || fonts.sans;
+
+  return (
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${archivoBlack.variable} ${crimsonPro.variable}`}>
+      <head>
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            :root {
+              --primary: ${primaryColor};
+              --font-family: ${fontFamily};
+            }
           `
         }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${archivoBlack.variable} ${crimsonPro.variable} antialiased selection:bg-green-500/30 bg-background text-foreground`}
+        className="antialiased selection:bg-primary/30 bg-background text-foreground"
+        style={{ fontFamily: 'var(--font-family)' }}
       >
         <ThemeProvider
           attribute="class"

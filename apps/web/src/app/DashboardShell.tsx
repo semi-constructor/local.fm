@@ -21,6 +21,7 @@ import { TimeframeTab } from "./TimeframeTab";
 import { TopTab } from "./TopTab";
 import { HistoryTab } from "./HistoryTab";
 import { SettingsTab } from "./SettingsTab";
+import { applyAccentColor, applyFontFamily } from "@/lib/theme";
 
 export default function DashboardShell({ session, dict, common, historyDict, settingsDict, locale }: { 
     session: any, 
@@ -55,8 +56,8 @@ export default function DashboardShell({ session, dict, common, historyDict, set
 
     // Polling Currently Playing and Status
     useEffect(() => {
-        applyAccentColor(session?.user?.accentColor || 'violet');
-        applyFontFamily(session?.user?.fontFamily || 'sans');
+        if (session?.user?.accentColor) applyAccentColor(session.user.accentColor);
+        if (session?.user?.fontFamily) applyFontFamily(session.user.fontFamily);
         
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -83,20 +84,15 @@ export default function DashboardShell({ session, dict, common, historyDict, set
             clearInterval(interval);
             clearInterval(slowInterval);
         };
-    }, [mainTab]); // Re-run when tab changes to ensure immediate load
-
-    const applyFontFamily = (font: string) => {
-        const FONTS: Record<string, string> = {
-            sans: 'var(--font-geist-sans)',
-            mono: 'var(--font-geist-mono)',
-            serif: 'var(--font-crimson-pro)',
-            black: 'var(--font-archivo-black)'
-        };
-        document.documentElement.style.setProperty('--font-family', FONTS[font] || FONTS.sans);
-    };
+    }, [mainTab, session]); // Re-run when tab changes or session updates
 
     const isVisible = (sectionId: string) => {
-        const prefs = session?.user?.dashboardPrefs;
+        let prefs = session?.user?.dashboardPrefs;
+        if (typeof prefs === 'string') {
+            try {
+                prefs = JSON.parse(prefs);
+            } catch (e) {}
+        }
         if (!prefs || typeof prefs !== 'object') return true;
         return prefs[sectionId] !== false;
     };
@@ -165,11 +161,13 @@ export default function DashboardShell({ session, dict, common, historyDict, set
     useEffect(() => {
         const fetchMain = async () => {
             try {
-                const [recentRes, summaryRes] = await Promise.all([
+                const [recentRes, summaryRes, genresRes] = await Promise.all([
                     axios.get(`${API_BASE_URL}/stats/recently-played`, { withCredentials: true }),
-                    axios.get(`${API_BASE_URL}/stats/summary?timeframe=day`, { withCredentials: true })
+                    axios.get(`${API_BASE_URL}/stats/summary?timeframe=day`, { withCredentials: true }),
+                    axios.get(`${API_BASE_URL}/stats/top-genres?timeframe=month&limit=5`, { withCredentials: true })
                 ]);
                 setRecentlyPlayed(recentRes?.data || []);
+                setTopGenres(genresRes?.data || []);
                 if (mainTab === 'main') setSummary(summaryRes?.data || null);
             } catch (e) { console.error(e); }
         };
@@ -243,8 +241,8 @@ export default function DashboardShell({ session, dict, common, historyDict, set
                 <div className="max-w-7xl mx-auto flex items-center justify-between px-6 h-16">
                     <div className="flex items-center gap-10">
                         <Link href="/" className="flex items-center gap-2 group">
-                            <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
-                                <Music className="w-5 h-5 text-background" />
+                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 shadow-primary/20">
+                                <Music className="w-5 h-5 text-primary-foreground" />
                             </div>
                             <span className="text-lg font-black tracking-tighter hidden sm:block">local.fm</span>
                         </Link>
@@ -261,7 +259,7 @@ export default function DashboardShell({ session, dict, common, historyDict, set
                                         onClick={() => setMainTab(item.id as any)}
                                         className={cn(
                                             "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
-                                            mainTab === item.id ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"
+                                            mainTab === item.id ? "bg-primary/10 text-primary shadow-sm shadow-primary/5" : "text-muted-foreground hover:text-foreground"
                                         )}
                                     >
                                         {item.icon} {item.label}
@@ -412,7 +410,7 @@ export default function DashboardShell({ session, dict, common, historyDict, set
                                             <Activity className="w-5 h-5 text-muted-foreground" />
                                             {dict?.today?.title}
                                         </h2>
-                                        <div className="grid grid-cols-2 gap-10">
+                                        <div className="grid grid-cols-2 gap-10 mb-10">
                                             <div>
                                                 <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-2">{dict?.today?.streams}</p>
                                                 <h3 className="text-5xl font-black tabular-nums tracking-tighter">{summary?.totalStreams?.toLocaleString() || 0}</h3>
@@ -422,6 +420,26 @@ export default function DashboardShell({ session, dict, common, historyDict, set
                                                 <h3 className="text-5xl font-black tabular-nums tracking-tighter">{formatDuration(summary?.totalDurationMs || 0)}</h3>
                                             </div>
                                         </div>
+
+                                        {isVisible('genres') && topGenres.length > 0 && (
+                                            <div className="pt-8 border-t border-border/50">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">{dict?.genres?.title}</p>
+                                                    <p className="text-[10px] font-bold text-muted-foreground italic opacity-50">{dict?.genres?.subtitle}</p>
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {topGenres.map((genre: any) => (
+                                                        <div 
+                                                            key={genre.name} 
+                                                            className="px-3 py-1.5 bg-secondary/30 rounded-lg border border-border/30 hover:border-primary/30 transition-all cursor-default group"
+                                                        >
+                                                            <span className="text-xs font-bold group-hover:text-primary transition-colors">{genre.name}</span>
+                                                            <span className="ml-2 text-[10px] font-black text-muted-foreground opacity-40">{formatDuration(genre.duration)}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </Card>
                                 )}
 
@@ -501,6 +519,7 @@ export default function DashboardShell({ session, dict, common, historyDict, set
                             setTimeframe={setTimeframe} 
                             topSubTab={topSubTab} 
                             setTopSubTab={setTopSubTab} 
+                            isVisible={isVisible}
                         />
                     )}
 

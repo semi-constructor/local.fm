@@ -15,5 +15,9 @@
   },
   "recent": {
     "title": "Recently Played"
+  },
+  "genres": {
+    "title": "Top Genres",
+    "subtitle": "Based on your recent history"
   }
 }

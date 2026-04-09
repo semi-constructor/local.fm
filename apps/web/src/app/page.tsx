@@ -18,9 +18,10 @@ export default async function Page() {
         console.error("Failed to check setup status:", e);
     }
 
-    const session = await authClient.getSession({
+    const { data: session } = await authClient.getSession({
         fetchOptions: {
-            headers: await headers()
+            headers: await headers(),
+            cache: 'no-store'
         }
     });
 

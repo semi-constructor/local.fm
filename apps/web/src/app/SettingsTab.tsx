@@ -5,31 +5,34 @@ import { useTheme } from 'next-themes';
 import { 
     Palette, Globe, Link2, LayoutDashboard, 
     Zap, ShieldCheck, Cpu, Check, Sun, Moon, 
-    Monitor, RefreshCw, Download, ExternalLink
+    Monitor, RefreshCw, Download, ExternalLink,
+    Save, Terminal, Loader2, Info
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { API_BASE_URL } from '@/lib/api';
 import axios from 'axios';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const ACCENT_COLORS: Record<string, string> = {
-    violet: '262 83% 58%',
-    green: '142 71% 45%',
-    blue: '217 91% 60%',
-    amber: '38 92% 50%'
-};
+import { applyAccentColor, applyFontFamily, ACCENT_COLORS } from '@/lib/theme';
 
 export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSection: initialSection, session }: any) {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const [activeSection, setActiveSection] = useState(initialSection || 'appearance');
+    
+    // Settings State (Local)
     const [accentColor, setAccentColor] = useState('violet');
     const [fontFamily, setFontFamily] = useState('sans');
+    const [isPublic, setIsPublic] = useState(false);
+    const [publicId, setPublicId] = useState('');
+    const [isDebugMode, setIsDebugMode] = useState(false);
     const [dashboardPrefs, setDashboardPrefs] = useState<any>({
         summary: true,
         currentlyPlaying: true,
         recentlyPlayed: true,
+        recap: true,
         habits: true,
         topItems: true,
         heatmap: true,
@@ -41,11 +44,14 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
         showActiveDay: true,
         animation: true
     });
+
+    // UI State
     const [systemHealth, setSystemHealth] = useState<any>(null);
-    const [isPublic, setIsPublic] = useState(false);
-    const [publicId, setPublicId] = useState('');
     const [isCopied, setIsCopied] = useState(false);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
     useEffect(() => {
         if (initialSection) {
@@ -55,21 +61,27 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
 
     useEffect(() => {
         setMounted(true);
-        const storedAccent = localStorage.getItem('accent-color') || 'violet';
-        setAccentColor(storedAccent);
-        applyAccentColor(storedAccent);
         
-        const storedFont = localStorage.getItem('font-family') || 'sans';
-        setFontFamily(storedFont);
-        applyFontFamily(storedFont);
-
-        // Load user settings
+        // Load settings from session (Database)
         if (session?.user) {
             setPublicId(session.user.publicId || '');
             setIsPublic(!!session.user.isPublicStats);
+            setIsDebugMode(!!session.user.debugMode);
+            if (session.user.accentColor) setAccentColor(session.user.accentColor);
             if (session.user.fontFamily) setFontFamily(session.user.fontFamily);
-            if (session.user.dashboardPrefs) setDashboardPrefs(session.user.dashboardPrefs);
-            if (session.user.recapPrefs) setRecapPrefs(session.user.recapPrefs);
+            
+            if (session.user.dashboardPrefs) {
+                try {
+                    const prefs = typeof session.user.dashboardPrefs === 'string' ? JSON.parse(session.user.dashboardPrefs) : session.user.dashboardPrefs;
+                    setDashboardPrefs(prefs);
+                } catch(e) { setDashboardPrefs(session.user.dashboardPrefs); }
+            }
+            if (session.user.recapPrefs) {
+                try {
+                    const prefs = typeof session.user.recapPrefs === 'string' ? JSON.parse(session.user.recapPrefs) : session.user.recapPrefs;
+                    setRecapPrefs(prefs);
+                } catch(e) { setRecapPrefs(session.user.recapPrefs); }
+            }
         }
 
         fetchSystemHealth();
@@ -82,71 +94,56 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
         } catch (e) { console.error(e); }
     };
 
-    const togglePublicStats = async () => {
-        const newValue = !isPublic;
-        setIsPublic(newValue);
+    const addLog = (msg: string) => {
+        setDebugLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        setDebugLogs([]);
+        
+        if (isDebugMode) {
+            addLog("INITIALIZING SAVE SEQUENCE...");
+            addLog(`PAYLOAD: ${JSON.stringify({ accentColor, fontFamily, isPublicStats: isPublic, debugMode: isDebugMode, dashboardPrefs, recapPrefs }, null, 2)}`);
+            addLog(`PRISMA: update User SET accentColor = '${accentColor}', fontFamily = '${fontFamily}', isPublicStats = ${isPublic}, debugMode = ${isDebugMode} WHERE id = '${session?.user?.id}'`);
+        }
+
         try {
-            await axios.post(`${API_BASE_URL}/user/update`, { isPublicStats: newValue }, { withCredentials: true });
-        } catch (e) { 
+            await axios.post(`${API_BASE_URL}/user/update`, { 
+                accentColor, 
+                fontFamily, 
+                isPublicStats: isPublic,
+                debugMode: isDebugMode,
+                dashboardPrefs,
+                recapPrefs
+            }, { withCredentials: true });
+
+            if (isDebugMode) addLog("DB UPDATE SUCCESSFUL. APPLYING STYLES GLOBALLY...");
+            
+            // Apply globally
+            applyAccentColor(accentColor);
+            applyFontFamily(fontFamily);
+
+            if (isDebugMode) addLog("STYLES APPLIED. RELOADING PAGE...");
+
+            setTimeout(() => {
+                setIsSaving(false);
+                setShowConfirmation(true);
+                setTimeout(() => window.location.reload(), 1500);
+            }, 800);
+        } catch (e: any) {
             console.error(e);
-            setIsPublic(!newValue);
+            if (isDebugMode) addLog(`ERROR: ${e.message}`);
+            setIsSaving(false);
+            alert("Save failed");
         }
     };
 
     const copyLink = () => {
-        const url = `${window.location.origin}/u/${publicId}`;
+        const url = `${window.location.origin}/public`;
         navigator.clipboard.writeText(url);
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
-    };
-
-    const applyAccentColor = (color: string) => {
-        const hsl = ACCENT_COLORS[color] || ACCENT_COLORS.violet;
-        document.documentElement.style.setProperty('--primary', hsl);
-        localStorage.setItem('accent-color', color);
-    };
-
-    const applyFontFamily = (font: string) => {
-        const FONTS: Record<string, string> = {
-            sans: 'var(--font-geist-sans)',
-            mono: 'var(--font-geist-mono)',
-            serif: 'serif',
-            black: 'Archivo Black, sans-serif'
-        };
-        document.documentElement.style.setProperty('--font-family', FONTS[font] || FONTS.sans);
-        localStorage.setItem('font-family', font);
-    };
-
-    const updateAccentColor = async (color: string) => {
-        setAccentColor(color);
-        applyAccentColor(color);
-        try {
-            await axios.post(`${API_BASE_URL}/user/update`, { accentColor: color }, { withCredentials: true });
-        } catch (e) { console.error(e); }
-    };
-
-    const updateFontFamily = async (font: string) => {
-        setFontFamily(font);
-        applyFontFamily(font);
-        try {
-            await axios.post(`${API_BASE_URL}/user/update`, { fontFamily: font }, { withCredentials: true });
-        } catch (e) { console.error(e); }
-    };
-
-    const updateDashboardPrefs = async (key: string) => {
-        const newPrefs = { ...dashboardPrefs, [key]: !dashboardPrefs[key] };
-        setDashboardPrefs(newPrefs);
-        try {
-            await axios.post(`${API_BASE_URL}/user/update`, { dashboardPrefs: newPrefs }, { withCredentials: true });
-        } catch (e) { console.error(e); }
-    };
-
-    const updateRecapPrefs = async (key: string, value: any) => {
-        const newPrefs = { ...recapPrefs, [key]: value };
-        setRecapPrefs(newPrefs);
-        try {
-            await axios.post(`${API_BASE_URL}/user/update`, { recapPrefs: newPrefs }, { withCredentials: true });
-        } catch (e) { console.error(e); }
     };
 
     const handleSync = async () => {
@@ -189,13 +186,14 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
         { id: 'dashboard', icon: <LayoutDashboard className="w-4 h-4" />, label: dict.sections.dashboard },
         { id: 'recap', icon: <Zap className="w-4 h-4" />, label: dict.sections.recap },
         { id: 'privacy', icon: <ShieldCheck className="w-4 h-4" />, label: dict.sections.privacy },
-        { id: 'advanced', icon: <Cpu className="w-4 h-4" />, label: dict.sections.advanced }
+        { id: 'advanced', icon: <Cpu className="w-4 h-4" />, label: dict.sections.advanced },
+        { id: 'devtools', icon: <Terminal className="w-4 h-4" />, label: 'DevTools' }
     ];
 
     if (!mounted) return null;
 
     return (
-        <div className="flex flex-col md:flex-row gap-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <div className="flex flex-col md:flex-row gap-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 relative">
             {/* Sidebar Navigation */}
             <aside className="w-full md:w-64 space-y-1">
                 <div className="px-4 mb-4">
@@ -209,7 +207,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                         className={cn(
                             "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all",
                             activeSection === section.id 
-                                ? "bg-primary text-primary-foreground shadow-lg" 
+                                ? "bg-primary/10 text-primary shadow-sm shadow-primary/5" 
                                 : "text-muted-foreground hover:bg-secondary/50"
                         )}
                     >
@@ -220,8 +218,8 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
             </aside>
 
             {/* Content Area */}
-            <div className="flex-1 max-w-3xl">
-                <Card premium className="p-8">
+            <div className="flex-1 max-w-3xl pb-24">
+                <Card premium className="p-8 relative">
                     {activeSection === 'appearance' && (
                         <div className="space-y-10">
                             <section>
@@ -271,7 +269,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                                     ].map((f) => (
                                         <button
                                             key={f.id}
-                                            onClick={() => updateFontFamily(f.id)}
+                                            onClick={() => setFontFamily(f.id)}
                                             className={cn(
                                                 "flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all",
                                                 fontFamily === f.id 
@@ -300,7 +298,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                                     ].map((c) => (
                                         <button
                                             key={c.id}
-                                            onClick={() => updateAccentColor(c.id)}
+                                            onClick={() => setAccentColor(c.id)}
                                             className={cn(
                                                 "group flex items-center gap-3 px-4 py-2 rounded-full border transition-all",
                                                 accentColor === c.id ? "bg-secondary border-primary/50" : "bg-secondary/20 border-transparent hover:border-border"
@@ -380,7 +378,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                                         <p className="text-xs font-bold text-muted-foreground">{dict.privacy.public.desc}</p>
                                     </div>
                                     <button 
-                                        onClick={togglePublicStats}
+                                        onClick={() => setIsPublic(!isPublic)}
                                         className={cn(
                                             "w-14 h-8 rounded-full p-1 transition-all duration-300",
                                             isPublic ? "bg-primary" : "bg-muted"
@@ -400,7 +398,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                                         </label>
                                         <div className="flex items-center gap-2">
                                             <div className="flex-1 bg-background px-4 py-3 rounded-xl border border-border/50 text-xs font-mono truncate">
-                                                {typeof window !== 'undefined' && `${window.location.origin}/u/${publicId}`}
+                                                {typeof window !== 'undefined' && `${window.location.origin}/public`}
                                             </div>
                                             <button 
                                                 onClick={copyLink}
@@ -458,6 +456,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                                         { id: 'summary', label: dict.dashboard.sections.summary },
                                         { id: 'currentlyPlaying', label: dict.dashboard.sections.currentlyPlaying },
                                         { id: 'recentlyPlayed', label: dict.dashboard.sections.recentlyPlayed },
+                                        { id: 'recap', label: dict.recap.title },
                                         { id: 'habits', label: dict.dashboard.sections.habits },
                                         { id: 'topItems', label: dict.dashboard.sections.topItems },
                                         { id: 'heatmap', label: dict.dashboard.sections.heatmap },
@@ -466,7 +465,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                                         <div key={s.id} className="flex items-center justify-between p-4 bg-secondary/10 rounded-2xl border border-border/50">
                                             <span className="text-sm font-bold">{s.label}</span>
                                             <button 
-                                                onClick={() => updateDashboardPrefs(s.id)}
+                                                onClick={() => setDashboardPrefs({ ...dashboardPrefs, [s.id]: !dashboardPrefs[s.id] })}
                                                 className={cn(
                                                     "w-12 h-7 rounded-full p-1 transition-all duration-300",
                                                     dashboardPrefs[s.id] ? "bg-primary" : "bg-muted"
@@ -483,6 +482,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                             </section>
                         </div>
                     )}
+                    
                     {activeSection === 'recap' && (
                         <div className="space-y-10">
                             <section>
@@ -500,7 +500,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                                             {[2023, 2024, 2025, 2026].map((y) => (
                                                 <button
                                                     key={y}
-                                                    onClick={() => updateRecapPrefs('year', y)}
+                                                    onClick={() => setRecapPrefs({ ...recapPrefs, year: y })}
                                                     className={cn(
                                                         "px-6 py-2 rounded-xl text-xs font-black transition-all",
                                                         recapPrefs.year === y 
@@ -523,7 +523,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                                             <div key={s.id} className="flex items-center justify-between p-4 bg-secondary/10 rounded-2xl border border-border/50">
                                                 <span className="text-sm font-bold">{s.label}</span>
                                                 <button 
-                                                    onClick={() => updateRecapPrefs(s.id, !recapPrefs[s.id])}
+                                                    onClick={() => setRecapPrefs({ ...recapPrefs, [s.id]: !recapPrefs[s.id] })}
                                                     className={cn(
                                                         "w-12 h-7 rounded-full p-1 transition-all duration-300",
                                                         recapPrefs[s.id] ? "bg-primary" : "bg-muted"
@@ -541,6 +541,7 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                             </section>
                         </div>
                     )}
+                    
                     {activeSection === 'advanced' && (
                         <div className="space-y-10">
                             <section>
@@ -596,8 +597,95 @@ export function SettingsTab({ dict, locale, spotifyStatus, disconnect, activeSec
                             </section>
                         </div>
                     )}
+
+                    {activeSection === 'devtools' && (
+                        <div className="space-y-10">
+                            <section>
+                                <div className="mb-8">
+                                    <h3 className="text-lg font-black tracking-tight mb-1">Developer Tools</h3>
+                                    <p className="text-xs font-bold text-muted-foreground">Advanced debugging options for developers.</p>
+                                </div>
+                                <div className="flex items-center justify-between p-6 bg-secondary/20 rounded-3xl border border-primary/20">
+                                    <div className="flex-1">
+                                        <h4 className="font-black text-lg">Debug Mode</h4>
+                                        <p className="text-xs font-bold text-muted-foreground">Shows database query logs and detailed save sequences.</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => setIsDebugMode(!isDebugMode)}
+                                        className={cn(
+                                            "w-14 h-8 rounded-full p-1 transition-all duration-300",
+                                            isDebugMode ? "bg-primary" : "bg-muted"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300 transform",
+                                            isDebugMode ? "translate-x-6" : "translate-x-0"
+                                        )} />
+                                    </button>
+                                </div>
+                            </section>
+                        </div>
+                    )}
+
+                    {/* Fixed Save Button at the bottom of the card content */}
+                    <div className="mt-12 flex items-center justify-end gap-4 pt-8 border-t border-border/50">
+                        <button 
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className="px-8 py-4 bg-primary text-primary-foreground rounded-2xl font-black uppercase tracking-widest text-[10px] hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            Apply & Save Settings
+                        </button>
+                    </div>
                 </Card>
             </div>
+
+            {/* Overlays */}
+            <AnimatePresence>
+                {(isSaving || showConfirmation) && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-background/80 backdrop-blur-xl">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="w-full max-w-xl bg-card border border-border shadow-2xl rounded-[40px] p-10 text-center relative overflow-hidden"
+                        >
+                            {isSaving ? (
+                                <div className="space-y-6">
+                                    <div className="w-20 h-20 bg-primary/10 rounded-[32px] flex items-center justify-center mx-auto mb-8">
+                                        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                                    </div>
+                                    <h3 className="text-3xl font-black tracking-tighter">Saving Changes...</h3>
+                                    <p className="text-muted-foreground font-bold">Synchronizing your preferences with the cloud.</p>
+                                    
+                                    {isDebugMode && debugLogs.length > 0 && (
+                                        <div className="mt-10 text-left bg-black p-6 rounded-2xl font-mono text-[10px] text-green-400 space-y-1 max-h-48 overflow-y-auto custom-scrollbar border border-white/10">
+                                            {debugLogs.map((log, i) => (
+                                                <p key={i} className="leading-relaxed"><span className="opacity-50 mr-2">➜</span>{log}</p>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="w-20 h-20 bg-green-500/10 rounded-[32px] flex items-center justify-center mx-auto mb-8">
+                                        <Check className="w-10 h-10 text-green-500" />
+                                    </div>
+                                    <h3 className="text-3xl font-black tracking-tighter">Settings Applied!</h3>
+                                    <p className="text-muted-foreground font-bold">Your experience has been updated globally.</p>
+                                    <button 
+                                        onClick={() => setShowConfirmation(false)}
+                                        className="mt-4 px-8 py-3 bg-foreground text-background rounded-xl text-xs font-black uppercase tracking-widest"
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+                            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

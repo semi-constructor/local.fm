@@ -1,6 +1,6 @@
 'use client';
 
-import { Disc, ListMusic, Music, User } from "lucide-react";
+import { Disc, ListMusic, Music, User, Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 export function TopTab({ 
     topTracks, topArtists, topAlbums, topGenres, 
     formatDuration, common, timeframe, setTimeframe, 
-    topSubTab, setTopSubTab 
+    topSubTab, setTopSubTab, isVisible 
 }: any) {
     
     const timeframes = ['day', 'week', 'month', 'year'];
@@ -30,7 +30,7 @@ export function TopTab({
                             onClick={() => setTimeframe(tf as any)}
                             className={cn(
                                 "px-6 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
-                                timeframe === tf ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                timeframe === tf ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             {tf}
@@ -45,7 +45,7 @@ export function TopTab({
                             onClick={() => setTopSubTab(tab.id as any)}
                             className={cn(
                                 "px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2",
-                                topSubTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                topSubTab === tab.id ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             {tab.icon}
@@ -63,9 +63,9 @@ export function TopTab({
                             <Link 
                                 key={track?.id || i} 
                                 href={`/track/${track?.id}`}
-                                className="group flex items-center gap-4 sm:gap-6 p-3 hover:bg-secondary/50 rounded-xl transition-all"
+                                className="group flex items-center gap-4 sm:gap-6 p-3 hover:bg-primary/5 rounded-xl transition-all"
                             >
-                                <div className="text-muted-foreground font-black text-sm w-6 text-center opacity-30">{i + 1}</div>
+                                <div className="text-muted-foreground font-black text-sm w-6 text-center opacity-30 group-hover:text-primary group-hover:opacity-100 transition-all">{i + 1}</div>
                                 <div className="w-12 h-12 rounded-lg overflow-hidden border border-border/50 flex-shrink-0 shadow-sm">
                                     {track?.album?.imageUrl ? (
                                         <img src={track.album.imageUrl} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -76,7 +76,7 @@ export function TopTab({
                                     <p className="text-xs text-muted-foreground truncate">{track?.artists?.map((a: any) => a.name).join(', ') || 'Unknown Artist'}</p>
                                 </div>
                                 <div className="text-right tabular-nums">
-                                    <p className="font-black text-sm sm:text-lg">{track?.playCount || 0}</p>
+                                    <p className="font-black text-sm sm:text-lg group-hover:text-primary transition-colors">{track?.playCount || 0}</p>
                                     <p className="text-[8px] sm:text-[10px] text-muted-foreground uppercase font-black tracking-widest">{common?.common?.streams}</p>
                                 </div>
                             </Link>

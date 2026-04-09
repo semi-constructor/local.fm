@@ -56,7 +56,6 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.5%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
     --primary-foreground: 240 5.9% 10%;
     --secondary: 240 3.7% 12%;
     --secondary-foreground: 0 0% 98%;
@@ -75,6 +74,10 @@
 @layer base {
   * {
     border-color: var(--border);
+  }
+  ::selection {
+    background-color: hsl(var(--primary) / 0.3);
+    color: inherit;
   }
   body {
     background-color: hsl(var(--background));

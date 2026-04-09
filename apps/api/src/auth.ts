@@ -27,6 +27,42 @@ export const auth = betterAuth({
                 required: false,
                 defaultValue: "violet",
                 input: true,
+            },
+            fontFamily: {
+                type: "string",
+                required: false,
+                defaultValue: "sans",
+                input: true,
+            },
+            publicId: {
+                type: "string",
+                required: false,
+                defaultValue: null,
+                input: false,
+            },
+            isPublicStats: {
+                type: "boolean",
+                required: false,
+                defaultValue: false,
+                input: true,
+            },
+            debugMode: {
+                type: "boolean",
+                required: false,
+                defaultValue: false,
+                input: true,
+            },
+            dashboardPrefs: {
+                type: "string",
+                required: false,
+                defaultValue: "{}",
+                input: true,
+            },
+            recapPrefs: {
+                type: "string",
+                required: false,
+                defaultValue: "{}",
+                input: true,
             }
         }
     },

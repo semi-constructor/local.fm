@@ -72,7 +72,8 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
 };
 
 
-app.use('/api/stats', authMiddleware, statsRouter);
+app.use('/api/stats', statsRouter);
+app.use('/api/public', statsRouter); // Alias for convenience
 app.use('/api/connect', authMiddleware, connectRouter);
 
 app.get('/api/setup/status', (req: Request, res: Response) => {
@@ -142,16 +143,17 @@ app.get('/api/import/list', authMiddleware, async (req: Request, res: Response) 
 
 app.post('/api/user/update', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
-    const { birthday, accentColor, isPublicStats, fontFamily, dashboardPrefs, recapPrefs } = req.body;
+    const { birthday, accentColor, isPublicStats, fontFamily, dashboardPrefs, recapPrefs, debugMode } = req.body;
     await prisma.user.update({
         where: { id: authReq.user.id },
         data: { 
             birthday: birthday ? new Date(birthday) : undefined,
             accentColor: accentColor || undefined,
             fontFamily: fontFamily || undefined,
-            dashboardPrefs: dashboardPrefs || undefined,
-            recapPrefs: recapPrefs || undefined,
-            isPublicStats: isPublicStats !== undefined ? !!isPublicStats : undefined
+            dashboardPrefs: dashboardPrefs ? JSON.stringify(dashboardPrefs) : undefined,
+            recapPrefs: recapPrefs ? JSON.stringify(recapPrefs) : undefined,
+            isPublicStats: isPublicStats !== undefined ? !!isPublicStats : undefined,
+            debugMode: debugMode !== undefined ? !!debugMode : undefined
         }
     });
     res.json({ success: true });

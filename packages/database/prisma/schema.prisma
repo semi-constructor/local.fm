@@ -20,6 +20,7 @@ model User {
   recapPrefs     Json?     @default("{}")
   publicId      String?   @unique @default(cuid())
   isPublicStats Boolean   @default(false)
+  debugMode     Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   

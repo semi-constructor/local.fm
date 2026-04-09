@@ -3,12 +3,19 @@ import { prisma } from 'database';
 import { metadataQueue } from '../lib/queue';
 
 export interface SpotifyHistoryEntry {
-  ts: string;
-  ms_played: number;
-  master_metadata_track_name: string | null;
-  master_metadata_album_artist_name: string | null;
-  master_metadata_album_album_name: string | null;
-  spotify_track_uri: string | null;
+  // Extended format
+  ts?: string;
+  ms_played?: number;
+  master_metadata_track_name?: string | null;
+  master_metadata_album_artist_name?: string | null;
+  master_metadata_album_album_name?: string | null;
+  spotify_track_uri?: string | null;
+
+  // Standard format
+  endTime?: string;
+  artistName?: string;
+  trackName?: string;
+  msPlayed?: number;
 }
 
 export interface ParseStats {
@@ -50,13 +57,15 @@ export async function parseSpotifyHistory(filePath: string, userId: string): Pro
     const uniqueSpotifyTrackIds = new Set<string>();
 
     for (const entry of chunk) {
-      if (!entry.spotify_track_uri || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name || !entry.master_metadata_album_album_name) {
+      const artistName = entry.master_metadata_album_artist_name || entry.artistName;
+      const trackName = entry.master_metadata_track_name || entry.trackName;
+      const albumName = entry.master_metadata_album_album_name || "Unknown Album";
+      
+      if (!artistName || !trackName) {
         continue;
       }
-      
-      const spotifyTrackId = entry.spotify_track_uri.split(':').pop() || '';
-      const artistName = entry.master_metadata_album_artist_name;
-      const albumName = entry.master_metadata_album_album_name;
+
+      const spotifyTrackId = entry.spotify_track_uri ? (entry.spotify_track_uri.split(':').pop() || '') : `legacy|${artistName}|${trackName}`;
 
       if (!artistCache.has(artistName)) uniqueArtistNames.add(artistName);
       if (!trackCache.has(spotifyTrackId)) uniqueSpotifyTrackIds.add(spotifyTrackId);
@@ -89,8 +98,6 @@ export async function parseSpotifyHistory(filePath: string, userId: string): Pro
 
     // 3. Batch lookup Albums
     if (uniqueAlbumKeys.size > 0) {
-        // This is a bit trickier since album lookup needs artistId
-        // For simplicity in batching, we'll group by artist
         const albumKeys = Array.from(uniqueAlbumKeys).map(k => {
             const [artistName, albumName] = k.split('|');
             return { artistName, albumName, artistId: artistCache.get(artistName)! };
@@ -132,16 +139,25 @@ export async function parseSpotifyHistory(filePath: string, userId: string): Pro
     // 4. Batch lookup Tracks
     if (uniqueSpotifyTrackIds.size > 0) {
         const existingTracks = await prisma.track.findMany({
-            where: { spotifyId: { in: Array.from(uniqueSpotifyTrackIds) } }
+            where: { 
+                OR: [
+                    { spotifyId: { in: Array.from(uniqueSpotifyTrackIds).filter(id => !id.startsWith('legacy|')) } },
+                    { 
+                        AND: [
+                            { spotifyId: null },
+                            { name: { in: chunk.map(c => c.master_metadata_track_name || c.trackName).filter(Boolean) as string[] } }
+                        ]
+                    }
+                ]
+            }
         });
         for (const track of existingTracks) {
-            trackCache.set(track.spotifyId!, track.id);
-            uniqueSpotifyTrackIds.delete(track.spotifyId!);
+            if (track.spotifyId) {
+                trackCache.set(track.spotifyId, track.id);
+            } else {
+                // For legacy tracks, we need a better mapping, but for now we skip batching legacy
+            }
         }
-        
-        // The remaining uniqueSpotifyTrackIds need to be created.
-        // We'll do this in the main loop to handle associations correctly, 
-        // or we could batch create them here if we have all info.
     }
 
     const streamData = [];
@@ -149,39 +165,53 @@ export async function parseSpotifyHistory(filePath: string, userId: string): Pro
     for (const entry of chunk) {
       stats.totalParsed++;
 
-      if (!entry.spotify_track_uri || !entry.master_metadata_track_name || !entry.master_metadata_album_artist_name || !entry.master_metadata_album_album_name) {
+      const artistName = entry.master_metadata_album_artist_name || entry.artistName;
+      const trackName = entry.master_metadata_track_name || entry.trackName;
+      const albumName = entry.master_metadata_album_album_name || "Unknown Album";
+      const msPlayed = entry.ms_played ?? entry.msPlayed ?? 0;
+      const playedAt = entry.ts ? new Date(entry.ts) : (entry.endTime ? new Date(entry.endTime) : new Date());
+
+      if (!artistName || !trackName) {
         stats.skipped++;
         continue;
       }
 
-      const spotifyTrackId = entry.spotify_track_uri.split(':').pop() || '';
-      const artistName = entry.master_metadata_album_artist_name;
-      const albumName = entry.master_metadata_album_album_name;
+      const spotifyTrackId = entry.spotify_track_uri ? (entry.spotify_track_uri.split(':').pop() || '') : null;
 
       try {
         const artistId = artistCache.get(artistName)!;
         const albumId = albumCache.get(`${artistName}|${albumName}`)!;
         
-        let trackId = trackCache.get(spotifyTrackId);
+        let trackId = spotifyTrackId ? trackCache.get(spotifyTrackId) : null;
+        
         if (!trackId) {
-            const track = await prisma.track.create({
-                data: {
-                    spotifyId: spotifyTrackId,
-                    name: entry.master_metadata_track_name,
-                    duration: entry.ms_played,
-                    artistId,
-                    albumId,
-                }
+            // Find by name if no spotifyId or not in cache
+            const existingTrack = await prisma.track.findFirst({
+                where: spotifyTrackId ? { spotifyId } : { name: trackName, artistId, albumId }
             });
-            trackId = track.id;
-            trackCache.set(spotifyTrackId, trackId);
+
+            if (existingTrack) {
+                trackId = existingTrack.id;
+            } else {
+                const track = await prisma.track.create({
+                    data: {
+                        spotifyId: spotifyTrackId,
+                        name: trackName,
+                        duration: msPlayed,
+                        artistId,
+                        albumId,
+                    }
+                });
+                trackId = track.id;
+            }
+            if (spotifyTrackId) trackCache.set(spotifyTrackId, trackId);
         }
 
         streamData.push({
           userId,
           trackId,
-          playedAt: new Date(entry.ts),
-          duration: entry.ms_played,
+          playedAt,
+          duration: msPlayed,
         });
 
       } catch (error) {

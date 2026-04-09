@@ -5,9 +5,10 @@ import { redirect } from "next/navigation";
 import HistoryView from "./HistoryView";
 
 export default async function Page() {
-    const session = await authClient.getSession({
+    const { data: session } = await authClient.getSession({
         fetchOptions: {
-            headers: await headers()
+            headers: await headers(),
+            cache: 'no-store'
         }
     });
 

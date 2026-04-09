@@ -5,8 +5,19 @@ import { toZonedTime } from 'date-fns-tz';
 import axios from 'axios';
 import { getValidSpotifyToken } from '../services/spotifyAuth';
 import { AuthenticatedRequest } from '../types';
+import { auth } from '../auth';
+import { NextFunction } from 'express';
 
 const router = Router();
+
+const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+    const session = await auth.api.getSession({ headers: new Headers(req.headers as any) });
+    if (!session) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    (req as AuthenticatedRequest).user = session.user as any;
+    next();
+};
 
 type Timeframe = 'lifetime' | 'year' | 'month' | 'week' | 'day';
 
@@ -33,7 +44,7 @@ const getDaysInTimeframe = (timeframe: Timeframe, userCreatedAt: Date, timezone:
     }
 };
 
-router.get('/currently-playing', async (req: Request, res: Response) => {
+router.get('/currently-playing', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const userId = authReq.user.id;
     const token = await getValidSpotifyToken(userId);
@@ -76,7 +87,7 @@ router.get('/currently-playing', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/summary', async (req: Request, res: Response) => {
+router.get('/summary', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const timeframe = (authReq.query.timeframe as Timeframe) || 'lifetime';
     const timezone = (authReq.query.timezone as string) || 'UTC';
@@ -124,7 +135,7 @@ router.get('/summary', async (req: Request, res: Response) => {
 });
 
 
-router.get('/habits', async (req: Request, res: Response) => {
+router.get('/habits', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const timeframe = (authReq.query.timeframe as Timeframe) || 'lifetime';
     const userId = authReq.user.id;
@@ -176,7 +187,7 @@ router.get('/habits', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/heatmap', async (req: Request, res: Response) => {
+router.get('/heatmap', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const userId = authReq.user.id;
     const oneYearAgo = subDays(new Date(), 365);
@@ -199,7 +210,7 @@ router.get('/heatmap', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/top-tracks', async (req: Request, res: Response) => {
+router.get('/top-tracks', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const timeframe = (authReq.query.timeframe as Timeframe) || 'lifetime';
     const limit = Number(authReq.query.limit) || 50;
@@ -236,7 +247,7 @@ router.get('/top-tracks', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/top-artists', async (req: Request, res: Response) => {
+router.get('/top-artists', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const timeframe = (authReq.query.timeframe as Timeframe) || 'lifetime';
     const limit = Number(authReq.query.limit) || 50;
@@ -264,7 +275,7 @@ router.get('/top-artists', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/top-albums', async (req: Request, res: Response) => {
+router.get('/top-albums', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const timeframe = (authReq.query.timeframe as Timeframe) || 'lifetime';
     const limit = Number(authReq.query.limit) || 50;
@@ -294,7 +305,7 @@ router.get('/top-albums', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/track/:id', async (req: Request, res: Response) => {
+router.get('/track/:id', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const userId = authReq.user.id;
     const trackId = authReq.params.id;
@@ -339,7 +350,7 @@ router.get('/track/:id', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/artist/:id', async (req: Request, res: Response) => {
+router.get('/artist/:id', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const userId = authReq.user.id;
     const artistId = authReq.params.id;
@@ -387,7 +398,7 @@ router.get('/artist/:id', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/recap', async (req: Request, res: Response) => {
+router.get('/recap', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const userId = authReq.user.id;
     const year = Number(authReq.query.year) || new Date().getFullYear();
@@ -465,7 +476,7 @@ router.get('/recap', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/album/:id', async (req: Request, res: Response) => {
+router.get('/album/:id', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const userId = authReq.user.id;
     const albumId = authReq.params.id;
@@ -510,7 +521,7 @@ router.get('/album/:id', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/top-genres', async (req: Request, res: Response) => {
+router.get('/top-genres', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const timeframe = (authReq.query.timeframe as Timeframe) || 'lifetime';
     const limit = Number(authReq.query.limit) || 6;
@@ -535,7 +546,7 @@ router.get('/top-genres', async (req: Request, res: Response) => {
     }
 });
 
-router.get('/recently-played', async (req: Request, res: Response) => {
+router.get('/recently-played', authMiddleware, async (req: Request, res: Response) => {
     const authReq = req as AuthenticatedRequest;
     const userId = authReq.user.id;
     const page = Number(authReq.query.page) || 1;
@@ -781,6 +792,240 @@ router.get('/global/top-tracks', async (req: Request, res: Response) => {
         res.json(hydrated.filter(t => t !== null));
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch global top tracks' });
+    }
+});
+
+router.get('/public/profile', async (req: Request, res: Response) => {
+    const timeframe = (req.query.timeframe as Timeframe) || 'lifetime';
+    const timezone = (req.query.timezone as string) || 'UTC';
+
+    try {
+        const user = await prisma.user.findFirst({ 
+            where: { isPublicStats: true },
+            select: { 
+                id: true, name: true, image: true, isPublicStats: true, 
+                createdAt: true, birthday: true, publicId: true,
+                accentColor: true, fontFamily: true
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: 'No public stats available' });
+        }
+
+        const { start } = getTimeRange(timeframe, timezone);
+
+        // ... (Same data fetching logic as the ID-based route)
+        // I'll extract this into a helper if I were doing it properly, 
+        // but for now I'll just repeat or call the other logic if possible.
+        // Actually, let's just make the ID optional or handle it here.
+        
+        // 1. Summary
+        const summaryStats = await prisma.$queryRaw<[{ totalStreams: bigint; totalDurationMs: bigint; distinctSongs: bigint }]>`
+            SELECT 
+                COUNT(*) as "totalStreams",
+                COALESCE(SUM(duration), 0) as "totalDurationMs",
+                COUNT(DISTINCT "trackId") as "distinctSongs"
+            FROM "Stream"
+            WHERE "userId" = ${user.id} AND "playedAt" >= ${start}
+        `;
+
+        const artistStatsCount = await prisma.$queryRaw<[{ distinctArtists: bigint }]>`
+            SELECT COUNT(DISTINCT "Track"."artistId") as "distinctArtists"
+            FROM "Stream"
+            JOIN "Track" ON "Stream"."trackId" = "Track"."id"
+            WHERE "Stream"."userId" = ${user.id} AND "Stream"."playedAt" >= ${start}
+        `;
+
+        // 2. Top Tracks
+        const topTracksRaw = await prisma.stream.groupBy({
+            by: ['trackId'],
+            where: { userId: user.id, playedAt: { gte: start } },
+            _count: { id: true },
+            _sum: { duration: true },
+            orderBy: { _sum: { duration: 'desc' } },
+            take: 20
+        });
+
+        const topTracks = await Promise.all(topTracksRaw.map(async (item) => {
+            const track = await prisma.track.findUnique({
+                where: { id: item.trackId },
+                include: { artist: true, album: true }
+            });
+            if (!track) return null;
+            return { ...track, artists: [track.artist], playCount: item._count.id, totalDuration: item._sum.duration };
+        }));
+
+        // 3. Top Artists
+        const topArtists = await prisma.$queryRaw<{ id: string; name: string; imageUrl: string | null; playCount: bigint; totalDuration: bigint }[]>`
+            SELECT 
+                "Artist"."id", "Artist"."name", "Artist"."imageUrl",
+                COUNT("Stream"."id") as "playCount",
+                SUM("Stream"."duration") as "totalDuration"
+            FROM "Stream"
+            JOIN "Track" ON "Stream"."trackId" = "Track"."id"
+            JOIN "Artist" ON "Track"."artistId" = "Artist"."id"
+            WHERE "Stream"."userId" = ${user.id} AND "Stream"."playedAt" >= ${start}
+            GROUP BY "Artist"."id"
+            ORDER BY "totalDuration" DESC
+            LIMIT 20
+        `;
+
+        // 4. Heatmap (last year)
+        const oneYearAgo = subDays(new Date(), 365);
+        const activity = await prisma.$queryRaw<[{ date: string; count: bigint }]>`
+            SELECT DATE("playedAt") as "date", COUNT(*) as "count"
+            FROM "Stream"
+            WHERE "userId" = ${user.id} AND "playedAt" >= ${oneYearAgo}
+            GROUP BY "date"
+            ORDER BY "date" ASC
+        `;
+
+        // 5. Recent Tracks
+        const recentTracks = await prisma.stream.findMany({
+            where: { userId: user.id },
+            orderBy: { playedAt: 'desc' },
+            take: 10,
+            include: { track: { include: { artist: true, album: true } } }
+        });
+
+        res.json({
+            user: { 
+                name: user.name, 
+                image: user.image, 
+                publicId: user.publicId,
+                accentColor: user.accentColor,
+                fontFamily: user.fontFamily
+            },
+            summary: {
+                totalDurationMs: Number(summaryStats[0].totalDurationMs),
+                totalStreams: Number(summaryStats[0].totalStreams),
+                distinctSongs: Number(summaryStats[0].distinctSongs),
+                distinctArtists: Number(artistStatsCount[0].distinctArtists),
+                timeframe
+            },
+            topTracks: topTracks.filter(Boolean),
+            topArtists: topArtists.map(a => ({ ...a, playCount: Number(a.playCount), totalDuration: Number(a.totalDuration) })),
+            heatmap: activity.map(a => ({ date: format(new Date(a.date), 'yyyy-MM-dd'), count: Number(a.count) })),
+            recentTracks: recentTracks.map(s => ({ ...s, track: { ...s.track, artists: [s.track.artist] } }))
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch public profile' });
+    }
+});
+
+router.get('/public/:publicId/profile', async (req: Request, res: Response) => {
+    let publicId = req.params.publicId;
+    const timeframe = (req.query.timeframe as Timeframe) || 'lifetime';
+    const timezone = (req.query.timezone as string) || 'UTC';
+
+    try {
+        const user = await prisma.user.findUnique({ 
+            where: { publicId },
+            select: { 
+                id: true, name: true, image: true, isPublicStats: true, 
+                createdAt: true, birthday: true, publicId: true,
+                accentColor: true, fontFamily: true
+            }
+        });
+
+        if (!user || !user.isPublicStats) {
+            return res.status(404).json({ error: 'Stats not found or private' });
+        }
+
+        const { start } = getTimeRange(timeframe, timezone);
+
+        // 1. Summary
+        const summaryStats = await prisma.$queryRaw<[{ totalStreams: bigint; totalDurationMs: bigint; distinctSongs: bigint }]>`
+            SELECT 
+                COUNT(*) as "totalStreams",
+                COALESCE(SUM(duration), 0) as "totalDurationMs",
+                COUNT(DISTINCT "trackId") as "distinctSongs"
+            FROM "Stream"
+            WHERE "userId" = ${user.id} AND "playedAt" >= ${start}
+        `;
+
+        const artistStatsCount = await prisma.$queryRaw<[{ distinctArtists: bigint }]>`
+            SELECT COUNT(DISTINCT "Track"."artistId") as "distinctArtists"
+            FROM "Stream"
+            JOIN "Track" ON "Stream"."trackId" = "Track"."id"
+            WHERE "Stream"."userId" = ${user.id} AND "Stream"."playedAt" >= ${start}
+        `;
+
+        // 2. Top Tracks
+        const topTracksRaw = await prisma.stream.groupBy({
+            by: ['trackId'],
+            where: { userId: user.id, playedAt: { gte: start } },
+            _count: { id: true },
+            _sum: { duration: true },
+            orderBy: { _sum: { duration: 'desc' } },
+            take: 20
+        });
+
+        const topTracks = await Promise.all(topTracksRaw.map(async (item) => {
+            const track = await prisma.track.findUnique({
+                where: { id: item.trackId },
+                include: { artist: true, album: true }
+            });
+            if (!track) return null;
+            return { ...track, artists: [track.artist], playCount: item._count.id, totalDuration: item._sum.duration };
+        }));
+
+        // 3. Top Artists
+        const topArtists = await prisma.$queryRaw<{ id: string; name: string; imageUrl: string | null; playCount: bigint; totalDuration: bigint }[]>`
+            SELECT 
+                "Artist"."id", "Artist"."name", "Artist"."imageUrl",
+                COUNT("Stream"."id") as "playCount",
+                SUM("Stream"."duration") as "totalDuration"
+            FROM "Stream"
+            JOIN "Track" ON "Stream"."trackId" = "Track"."id"
+            JOIN "Artist" ON "Track"."artistId" = "Artist"."id"
+            WHERE "Stream"."userId" = ${user.id} AND "Stream"."playedAt" >= ${start}
+            GROUP BY "Artist"."id"
+            ORDER BY "totalDuration" DESC
+            LIMIT 20
+        `;
+
+        // 4. Heatmap (last year)
+        const oneYearAgo = subDays(new Date(), 365);
+        const activity = await prisma.$queryRaw<[{ date: string; count: bigint }]>`
+            SELECT DATE("playedAt") as "date", COUNT(*) as "count"
+            FROM "Stream"
+            WHERE "userId" = ${user.id} AND "playedAt" >= ${oneYearAgo}
+            GROUP BY "date"
+            ORDER BY "date" ASC
+        `;
+
+        // 5. Recent Tracks
+        const recentTracks = await prisma.stream.findMany({
+            where: { userId: user.id },
+            orderBy: { playedAt: 'desc' },
+            take: 10,
+            include: { track: { include: { artist: true, album: true } } }
+        });
+
+        res.json({
+            user: { 
+                name: user.name, 
+                image: user.image, 
+                publicId: user.publicId,
+                accentColor: user.accentColor,
+                fontFamily: user.fontFamily
+            },
+            summary: {
+                totalDurationMs: Number(summaryStats[0].totalDurationMs),
+                totalStreams: Number(summaryStats[0].totalStreams),
+                distinctSongs: Number(summaryStats[0].distinctSongs),
+                distinctArtists: Number(artistStatsCount[0].distinctArtists),
+                timeframe
+            },
+            topTracks: topTracks.filter(Boolean),
+            topArtists: topArtists.map(a => ({ ...a, playCount: Number(a.playCount), totalDuration: Number(a.totalDuration) })),
+            heatmap: activity.map(a => ({ date: format(new Date(a.date), 'yyyy-MM-dd'), count: Number(a.count) })),
+            recentTracks: recentTracks.map(s => ({ ...s, track: { ...s.track, artists: [s.track.artist] } }))
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch public profile' });
     }
 });
 

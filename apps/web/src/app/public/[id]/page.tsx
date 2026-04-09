@@ -13,17 +13,11 @@ export default async function PublicProfilePage({ params }: { params: { id: stri
     let error = null;
 
     try {
-        const res = await axios.get(`${API_BASE_URL}/stats/public/${id}/summary?timeframe=lifetime`);
+        const res = await axios.get(`${API_BASE_URL}/stats/public/${id}/profile?timeframe=lifetime`);
         initialData = res.data;
     } catch (e: any) {
-        // If not found, try to find ANY public user (for single user convenience)
-        try {
-            const fallback = await axios.get(`${API_BASE_URL}/stats/public/any/summary?timeframe=lifetime`);
-            initialData = fallback.data;
-            // We should probably redirect to the correct ID but for now just show data
-        } catch (e2) {
-            error = e.response?.data?.error || "User not found or profile is private";
-        }
+        // Fallback or specific error handling
+        error = e.response?.data?.error || "User not found or profile is private";
     }
 
     if (error) {
