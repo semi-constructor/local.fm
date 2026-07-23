@@ -10,7 +10,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@better-auth/utils": "^0.4.0",
+    "@better-auth/utils": "^0.4.2",
     "adm-zip": "^0.5.17",
     "axios": "^1.14.0",
     "better-auth": "^1.6.0",
