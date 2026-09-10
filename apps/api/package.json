@@ -36,7 +36,7 @@
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
-    "@types/node": "^25.5.2",
+    "@types/node": "^26.5.0",
     "@types/supertest": "^7.2.0",
     "eslint-config-custom": "*",
     "jest": "^30.3.0",
